@@ -51,6 +51,6 @@ xem các thông báo bản quyền trong từng thư mục con.
 * goibus: xem [src/ibus-teni/vendor/github.com/sarim/goibus/README.md](src/ibus-teni/vendor/github.com/sarim/goibus/README.md)
 
 
-Dữ liệu từ điển trong thư mục dict: xem [dict/LICENSE](dict/LICENSE)
+Dữ liệu từ điển trong thư mục [dict](dict): xem [dict/LICENSE](dict/LICENSE)
 * [Dữ liệu từ điển tiếng Việt của Ho Ngoc Duc](http://www.informatik.uni-leipzig.de/~duc/Dict/)
 * [Danh sách viết tắt trong tiếng Việt của QUOC-HUNG NGO](https://sites.google.com/site/ngo2uochung/research/dsviettat-tieng-viet)
