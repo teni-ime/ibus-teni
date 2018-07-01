@@ -31,33 +31,37 @@ Hướng dẫn nhanh
 ------------------
 *Hướng dẫn chi tiết xem [wiki](https://github.com/teni-ime/ibus-teni/wiki)*
 
-1. Cài đặt
+### Cài đặt
 
-Tải file package
+1. Tải file package
 * Ubuntu/Kali/.../Debian: [ibus-teni-version.deb]()
 * CentOS/Fedora/.../RedHat: [ibus-teni-version.rpm]()
 * Manjaro/.../Arch: [ibus-teni-version.tar.gz]()
 
-Chạy command tại thư mục chứa file vừa tải
+2. Chạy command tại thư mục chứa file vừa tải
 * Ubuntu/Kali/.../Debian: `sudo dpkg -i ibus-teni-version.deb`
 * CentOS/Fedora/.../RedHat: `rpm -i ibus-teni-version.rpm`
 * Manjaro/.../Arch: `sudo pacman -U bus-teni-version.tar.gz`
 
-Restart IBus: `ibus restart`
+3. Restart IBus: `ibus restart`
     
-2. Cấu hình IBus/Input method/Text entry
-    1. Cấu hình input method là IBus
-    2. Thêm Vietnamese (Teni) vào text entry
+### Cấu hình IBus/Input method/Text entry
+
+1. Cấu hình input method là IBus
     
-3. Gỡ bỏ
+2. Thêm Vietnamese (Teni) vào text entry
+    
+### Gỡ bỏ
+
+1. Chạy command
 * Ubuntu/Kali/.../Debian: `sudo apt remove ibus-teni -y`
 * CentOS/Fedora/.../RedHat: `sudo yum remove ibus-teni -y`
 * Manjaro/.../RedHat: `sudo pacman -Ry ibus-teni`
 
-Restart IBus: `ibus restart`
+2. Restart IBus: `ibus restart`
 
 
-4. Sử dụng
+### Sử dụng
 * Dùng phím tắt mặc định của IBus (thường là ⊞Win+Space) để chuyển đổi giữa các IME
 * IBus-Teni dùng pre-edit để xử lý phím gõ, mặc định sẽ có gạch chân chữ khi đang gõ
 * **Khi pre-edit chưa kết thúc mà nhấn chuột vào chỗ khác thì có 3 khả năng xảy ra tùy chương trình**
