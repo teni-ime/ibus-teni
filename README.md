@@ -14,22 +14,58 @@ Build Status
 
 Teni là gì ?
 ------------
-Teni là kết hợp **Te**lex và V**ni** - 2 kiểu gõ tiếng Việt phổ biến nhất.
+* Teni là kết hợp **Te**lex và V**ni** - 2 kiểu gõ tiếng Việt phổ biến nhất.
+* Teni cũng là kiểu gõ mặc định của bộ gõ này, vừa gõ được Telex, vừa gõ được Vni.
 
-Teni cũng là kiểu gõ mặc định của bộ gõ này, vừa gõ được Telex, vừa gõ được Vni.
+### Sơ lượt tính năng
+* Chỉ bảng mã Unicode
+* 2 kiểu gõ: 
+  * **Kiểu gõ Teni**
+  * **Kiểu gõ Vni**
+* 2 kiểu đánh dấu thanh:
+  * **Dấu thanh chuẩn**
+  * **Dấu thanh kiểu mới**
+* Gõ dấu tự do, đánh dấu thanh bằng từ điển
 
-Tính năng bộ gõ
-------------
-*
-*
-*
-
-Hướng dẫn cài đặt
+Hướng dẫn nhanh
 ------------------
+*Hướng dẫn chi tiết xem [wiki](https://github.com/teni-ime/ibus-teni/wiki)*
 
-*
-*
-*
+1. Cài đặt
+
+Tải file package
+* Ubuntu/Kali/.../Debian: [ibus-teni-version.deb]()
+* CentOS/Fedora/.../RedHat: [ibus-teni-version.rpm]()
+* Manjaro/.../Arch: [ibus-teni-version.tar.gz]()
+
+Chạy command tại thư mục chứa file vừa tải
+* Ubuntu/Kali/.../Debian: `sudo dpkg -i ibus-teni-version.deb`
+* CentOS/Fedora/.../RedHat: `rpm -i ibus-teni-version.rpm`
+* Manjaro/.../Arch: `sudo pacman -U bus-teni-version.tar.gz`
+
+Restart IBus: `ibus restart`
+    
+2. Cấu hình IBus/Input method/Text entry
+    1. Cấu hình input method là IBus
+    2. Thêm Vietnamese (Teni) vào text entry
+    
+3. Gỡ bỏ
+* Ubuntu/Kali/.../Debian: `sudo apt remove ibus-teni -y`
+* CentOS/Fedora/.../RedHat: `sudo yum remove ibus-teni -y`
+* Manjaro/.../RedHat: `sudo pacman -Ry ibus-teni`
+
+Restart IBus: `ibus restart`
+
+
+4. Sử dụng
+* Dùng phím tắt mặc định của IBus (thường là ⊞Win+Space) để chuyển đổi giữa các IME
+* IBus-Teni dùng pre-edit để xử lý phím gõ, mặc định sẽ có gạch chân chữ khi đang gõ
+* **Khi pre-edit chưa kết thúc mà nhấn chuột vào chỗ khác thì có 3 khả năng xảy ra tùy chương trình**
+    * **Chữ đang gõ bị mất**
+    * **Chữ đang gõ được commit vào vị trí mới con trỏ**
+    * **Chữ đang gõ được commit vào vị trí cũ**
+* **Vì vậy đừng quên commit: khi gõ chỉ một chữ, hoặc chữ cuối câu, hoặc sửa chữ giữa câu: nhấn Ctrl hoặc phím mũi tên (↑→↓←) để commit.**
+         
 
 Các phiên bản
 ------------
