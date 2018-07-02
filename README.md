@@ -38,18 +38,19 @@ Hướng dẫn nhanh
 * CentOS/Fedora/.../RedHat: [ibus-teni-version.rpm]()
 * Manjaro/.../Arch: [ibus-teni-version.tar.gz]()
 
-2. Chạy command tại thư mục chứa file vừa tải
+2. Double click vào file để cài hoặc chạy command:
 * Ubuntu/Kali/.../Debian: `sudo dpkg -i ibus-teni-version.deb`
 * CentOS/Fedora/.../RedHat: `rpm -i ibus-teni-version.rpm`
 * Manjaro/.../Arch: `sudo pacman -U bus-teni-version.tar.gz`
 
 3. Restart IBus: `ibus restart`
     
-### Cấu hình IBus/Input method/Text entry
+### Cấu hình Input method/Input source
+#### Ubuntu
+* [Keyboard input method system: IBus](https://github.com/teni-ime/ibus-teni/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-c%E1%BA%A5u-h%C3%ACnh/_edit#1-keyboard-input-method-system-ibus)
+* [Add an input source: Vietnamese(Teni)](https://github.com/teni-ime/ibus-teni/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-c%E1%BA%A5u-h%C3%ACnh#2-add-an-input-source-vietnameseteni)
 
-1. Cấu hình input method là IBus
-    
-2. Thêm Vietnamese (Teni) vào text entry
+#### Các distro khác: [wiki](https://github.com/teni-ime/ibus-teni/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-c%E1%BA%A5u-h%C3%ACnh/_edit#c%C3%A1c-distro-kh%C3%A1c)
     
 ### Gỡ bỏ
 
@@ -62,7 +63,7 @@ Hướng dẫn nhanh
 
 
 ### Sử dụng
-* Dùng phím tắt mặc định của IBus (thường là ⊞Win+Space) để chuyển đổi giữa các IME
+* Dùng phím tắt mặc định của IBus (thường là ⊞Win+Space) để chuyển đổi giữa các bộ gõ
 * IBus-Teni dùng pre-edit để xử lý phím gõ, mặc định sẽ có gạch chân chữ khi đang gõ
 * **Khi pre-edit chưa kết thúc mà nhấn chuột vào chỗ khác thì có 3 khả năng xảy ra tùy chương trình**
     * **Chữ đang gõ bị mất**
