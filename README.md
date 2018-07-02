@@ -27,42 +27,34 @@ Teni là gì ?
   * **Dấu thanh kiểu mới**
 * Gõ dấu tự do, đánh dấu thanh bằng từ điển
 
-Hướng dẫn nhanh
+Cài đặt và cấu hình
 ------------------
-*Hướng dẫn chi tiết xem [wiki](https://github.com/teni-ime/ibus-teni/wiki)*
+*Hướng dẫn chi tiết và hướng dẫn cho các distro khác: [wiki](https://github.com/teni-ime/ibus-teni/wiki)*
 
 ### Cài đặt
 
-1. Tải file package
-* Ubuntu/Kali/.../Debian: [ibus-teni-version.deb]()
-* CentOS/Fedora/.../RedHat: [ibus-teni-version.rpm]()
-* Manjaro/.../Arch: [ibus-teni-version.tar.gz]()
+1. Tải file package: [ibus-teni-version.deb]()
 
 2. Double click vào file để cài hoặc chạy command:
-* Ubuntu/Kali/.../Debian: `sudo dpkg -i ibus-teni-version.deb`
-* CentOS/Fedora/.../RedHat: `rpm -i ibus-teni-version.rpm`
-* Manjaro/.../Arch: `sudo pacman -U bus-teni-version.tar.gz`
 
-3. Restart IBus: `ibus restart`
+   `sudo dpkg -i ibus-teni-version.deb`
+
+3. Restart IBus:
+
+   `ibus restart`
     
-### Cấu hình Input method/Input source
-#### Ubuntu
-* [Keyboard input method system: IBus](https://github.com/teni-ime/ibus-teni/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-c%E1%BA%A5u-h%C3%ACnh/_edit#1-keyboard-input-method-system-ibus)
-* [Add an input source: Vietnamese(Teni)](https://github.com/teni-ime/ibus-teni/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-c%E1%BA%A5u-h%C3%ACnh#2-add-an-input-source-vietnameseteni)
-
-#### Các distro khác: [wiki](https://github.com/teni-ime/ibus-teni/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-c%E1%BA%A5u-h%C3%ACnh/_edit#c%C3%A1c-distro-kh%C3%A1c)
+### Cấu hình
+1. [Keyboard input method system: IBus](https://github.com/teni-ime/ibus-teni/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-c%E1%BA%A5u-h%C3%ACnh/_edit#1-keyboard-input-method-system-ibus)
+2. [Add an input source: Vietnamese(Teni)](https://github.com/teni-ime/ibus-teni/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-c%E1%BA%A5u-h%C3%ACnh#2-add-an-input-source-vietnameseteni)
     
 ### Gỡ bỏ
+```
+  sudo apt remove ibus-teni -y
+  ibus restart
+```
 
-1. Chạy command
-* Ubuntu/Kali/.../Debian: `sudo apt remove ibus-teni -y`
-* CentOS/Fedora/.../RedHat: `sudo yum remove ibus-teni -y`
-* Manjaro/.../RedHat: `sudo pacman -Ry ibus-teni`
-
-2. Restart IBus: `ibus restart`
-
-
-### Sử dụng
+Sử dụng
+-------------
 * Dùng phím tắt mặc định của IBus (thường là ⊞Win+Space) để chuyển đổi giữa các bộ gõ
 * IBus-Teni dùng pre-edit để xử lý phím gõ, mặc định sẽ có gạch chân chữ khi đang gõ
 * **Khi pre-edit chưa kết thúc mà nhấn chuột vào chỗ khác thì có 3 khả năng xảy ra tùy chương trình**
