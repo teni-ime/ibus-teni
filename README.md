@@ -49,8 +49,8 @@ Cài đặt và cấu hình
     
 ### Gỡ bỏ
 ```
-  sudo apt remove ibus-teni -y
-  ibus restart
+sudo apt remove ibus-teni -y
+ibus restart
 ```
 
 Sử dụng
