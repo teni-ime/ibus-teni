@@ -29,7 +29,7 @@ Teni là gì ?
 
 Cài đặt và cấu hình
 ------------------
-*Hướng dẫn chi tiết và hướng dẫn cho các distro khác: [wiki](https://github.com/teni-ime/ibus-teni/wiki)*
+*Bên dưới là hướng dẫn cho Ubuntu 18 (các distro khác: [wiki](https://github.com/teni-ime/ibus-teni/wiki))*
 
 ### Cài đặt
 
