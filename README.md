@@ -2,6 +2,7 @@
 ===================================
 [![Build Status](https://travis-ci.org/teni-ime/ibus-teni.svg?branch=master)](https://travis-ci.org/teni-ime/ibus-teni)
 [![GitHub release](https://img.shields.io/github/release/teni-ime/ibus-teni.svg)](https://github.com/teni-ime/ibus-teni/releases/latest)
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 Copyright 2018, Nguyen Cong Hoang <<hoangnc.jp@gmail.com>>.
 
