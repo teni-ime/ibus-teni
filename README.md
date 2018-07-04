@@ -44,7 +44,7 @@ Cài đặt và cấu hình
    `ibus restart`
     
 ### Cấu hình
-1. [Keyboard input method system: IBus](https://github.com/teni-ime/ibus-teni/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-c%E1%BA%A5u-h%C3%ACnh/_edit#1-keyboard-input-method-system-ibus)
+1. [Keyboard input method system: IBus](https://github.com/teni-ime/ibus-teni/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-c%E1%BA%A5u-h%C3%ACnh#1-keyboard-input-method-system-ibus)
 2. [Add an input source: Vietnamese(Teni)](https://github.com/teni-ime/ibus-teni/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-c%E1%BA%A5u-h%C3%ACnh#2-add-an-input-source-vietnameseteni)
     
 ### Gỡ bỏ
