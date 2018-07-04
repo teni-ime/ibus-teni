@@ -1,16 +1,13 @@
 [IBus Teni - a Vietnamese Input Method Editor for IBus](https://github.com/teni-ime/ibus-teni)
 ===================================
+[![Build Status](https://travis-ci.org/teni-ime/ibus-teni.svg?branch=master)](https://travis-ci.org/teni-ime/ibus-teni)
 
 Copyright 2018, Nguyen Cong Hoang <<hoangnc.jp@gmail.com>>.
 
-IBus Teni is a Japanese Input Method Editor (IME) for IBus.
+IBus Teni is a Vietnamese Input Method Editor (IME) for IBus.
 
 IBus Teni là một bộ gõ tiếng Việt cho IBus.
 
-Build Status
-------------
-
-[![Build Status](https://travis-ci.org/teni-ime/ibus-teni.svg?branch=master)](https://travis-ci.org/teni-ime/ibus-teni)
 
 Teni là gì ?
 ------------
