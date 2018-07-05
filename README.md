@@ -1,7 +1,6 @@
 [IBus Teni - a Vietnamese Input Method Editor for IBus](https://github.com/teni-ime/ibus-teni)
 ===================================
 [![Build Status](https://travis-ci.org/teni-ime/ibus-teni.svg?branch=master)](https://travis-ci.org/teni-ime/ibus-teni)
-[![GitHub release](https://img.shields.io/github/release/teni-ime/ibus-teni.svg)](https://github.com/teni-ime/ibus-teni/releases/latest)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://opensource.org/licenses/GPL-3.0)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/teni-ime/ibus-teni/issues)
 
