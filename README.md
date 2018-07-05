@@ -33,11 +33,11 @@ Cài đặt và cấu hình
 
 ### Cài đặt
 
-1. Tải file package: [ibus-teni-version.deb]()
+1. Tải file package tại trang [release](https://github.com/teni-ime/ibus-teni/releases)
 
 2. Double click vào file để cài hoặc chạy command:
 
-   `sudo dpkg -i ibus-teni-version.deb`
+   `sudo dpkg -i ibus-teni-<version>.deb`
 
 3. Restart IBus:
 
