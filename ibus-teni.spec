@@ -81,7 +81,7 @@ rm -rf %{buildroot}
 
 
 %changelog
-* Fri Jun 22 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 0.1
-- Phiên bản chính thức đầu tiên: ibus-teni v0.1
 * Sun Jul 29 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.0.0
 - Phiên bản hoàn thiện chính thức: ibus-teni v1.0.0
+* Fri Jun 22 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 0.1
+- Phiên bản chính thức đầu tiên: ibus-teni v0.1
