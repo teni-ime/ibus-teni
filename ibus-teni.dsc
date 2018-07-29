@@ -20,9 +20,9 @@ Format: 1.0
 Source: ibus-teni
 Binary: ibus-teni
 Architecture: any
-Version: 0.1-0
+Version: 1.0.0-0
 Maintainer: Nguyen Cong Hoang <hoangnc.jp@gmail.com>
 Homepage: https://github.com/teni-ime/ibus-teni
 Build-Depends: debhelper, golang
 Files:
- 0 0 ibus-teni-0.1.tar.gz
+ 0 0 ibus-teni-1.0.0.tar.gz
