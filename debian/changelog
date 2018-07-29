@@ -1,0 +1,13 @@
+ibus-teni (1.0.0-1) stable; urgency=low
+
+  * Release 1.0.0
+    - Phiên bản hoàn thiện chính thức: ibus-teni 1.0.0
+
+ -- Nguyen Cong Hoang <hoangnc.jp@gmail.com>  Sun, 29 Jul 2018 00:00:00 +0900
+
+ibus-teni (0.1-1) stable; urgency=low
+
+  * Release 0.1
+    - Phiên bản chính thức đầu tiên: ibus-teni 0.1
+
+ -- Nguyen Cong Hoang <hoangnc.jp@gmail.com>  Sun, 24 Jun 2018 00:00:00 +0900

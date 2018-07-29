@@ -1,6 +1,7 @@
 [IBus Teni - a Vietnamese Input Method Editor for IBus](https://github.com/teni-ime/ibus-teni)
 ===================================
 [![Build Status](https://travis-ci.org/teni-ime/ibus-teni.svg?branch=master)](https://travis-ci.org/teni-ime/ibus-teni)
+[![GitHub release](https://img.shields.io/github/release/teni-ime/ibus-teni.svg)](https://github.com/teni-ime/ibus-teni/releases/latest)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://opensource.org/licenses/GPL-3.0)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/teni-ime/ibus-teni/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-g%C3%B3p-%C3%BD%2C-b%C3%A1o-l%E1%BB%97i)
 
@@ -67,7 +68,7 @@ Các phiên bản
 ------------
 * Phiên bản thử nghiệm không công khai hoàn thành vào cuối tháng 5/2018
 * Phiên bản thử nghiệm công khai dự kiến phát hành vào đầu tháng 7/2018
-* Phiên bản chính thức dự kiến phát hành sau thử nghiệm công khai 2 tuần
+* Phiên bản chính thức phát hành vào ngày 29/7/2018
 
 Xem trang [release](https://github.com/teni-ime/ibus-teni/releases) để biết chi tiết các phiên bản đã phát hành.
 
