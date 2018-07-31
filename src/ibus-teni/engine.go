@@ -161,7 +161,11 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 
 	if keyVal == IBUS_space || keyVal == IBUS_KP_Space {
 		if e.preediter.ResultLen() > 0 {
-			e.commitPreedit(keyVal)
+			e.commitPreedit(0)
+			if e.capSurrounding {
+				return false, nil
+			}
+			e.ForwardKeyEvent(keyVal, keyCode, state)
 			return true, nil
 		}
 	}
