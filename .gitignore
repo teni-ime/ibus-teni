@@ -1,0 +1,5 @@
+.idea/
+pkg/
+*_linux
+*.tar.gz
+ibus-engine-*
