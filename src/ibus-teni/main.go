@@ -47,7 +47,7 @@ func main() {
 		bus.RequestName(ComponentName, 0)
 
 		conn := bus.GetDbusConn()
-		ibus.NewFactory(conn, VietEngineCreator)
+		ibus.NewFactory(conn, IBusTeniEngineCreator)
 
 		select {}
 	} else {
@@ -58,7 +58,7 @@ func main() {
 		bus.RegisterComponent(makeDebugComponent())
 
 		conn := bus.GetDbusConn()
-		ibus.NewFactory(conn, VietEngineCreator)
+		ibus.NewFactory(conn, IBusTeniEngineCreator)
 
 		log.Println("Setting Global Engine to", DebugEngineName)
 		bus.CallMethod("SetGlobalEngine", 0, DebugEngineName)

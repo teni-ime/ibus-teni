@@ -33,7 +33,7 @@ const (
 	DiffNumpadKeypad = IBUS_KP_0 - IBUS_0
 )
 
-type VietEngine struct {
+type IBusTeniEngine struct {
 	ibus.Engine
 	preediter      *teni.Engine
 	enable         bool
@@ -50,7 +50,7 @@ var (
 	DictNewList = []string{DictVietnameseCm, DictVietnameseSp, DictVietnameseNew}
 )
 
-func VietEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
+func IBusTeniEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
 
 	objectPath := dbus.ObjectPath(fmt.Sprintf("/org/freedesktop/IBus/Engine/Teni/%d", time.Now().UnixNano()))
 
@@ -60,7 +60,7 @@ func VietEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
 	} else {
 		teni.InitWordTrie(DictNewList...)
 	}
-	engine := &VietEngine{
+	engine := &IBusTeniEngine{
 		Engine:     ibus.BaseEngine(conn, objectPath),
 		preediter:  teni.NewEngine(),
 		engineName: engineName,
@@ -73,11 +73,11 @@ func VietEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
 	return objectPath
 }
 
-func (e *VietEngine) updatePreeditViet() {
+func (e *IBusTeniEngine) updatePreedit() {
 	e.UpdatePreeditTextWithMode(ibus.NewText(e.preediter.GetResultStr()), e.preediter.ResultLen(), true, ibus.IBUS_ENGINE_PREEDIT_COMMIT)
 }
 
-func (e *VietEngine) commitPreeditViet(lastKey uint32) {
+func (e *IBusTeniEngine) commitPreedit(lastKey uint32) {
 	var commitStr string
 	if lastKey == IBUS_Escape {
 		commitStr = e.preediter.GetRawStr()
@@ -104,7 +104,7 @@ func (e *VietEngine) commitPreeditViet(lastKey uint32) {
 	e.UpdatePreeditText(emptyText, 0, true)
 }
 
-func (e *VietEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state uint32) (bool, *dbus.Error) {
+func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state uint32) (bool, *dbus.Error) {
 	//log.Println("ProcessKeyEvent", keyVal, keyCode, state)
 
 	if !e.enable ||
@@ -131,7 +131,7 @@ func (e *VietEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state uint32
 	if keyVal == IBUS_BackSpace {
 		if e.preediter.RawKeyLen() > 0 {
 			e.preediter.Backspace()
-			e.updatePreeditViet()
+			e.updatePreedit()
 			return true, nil
 		}
 
@@ -141,7 +141,7 @@ func (e *VietEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state uint32
 
 	if keyVal == IBUS_Return || keyVal == IBUS_KP_Enter {
 		if e.preediter.ResultLen() > 0 {
-			e.commitPreeditViet(keyVal)
+			e.commitPreedit(keyVal)
 			if e.capSurrounding {
 				return false, nil
 			}
@@ -154,20 +154,20 @@ func (e *VietEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state uint32
 
 	if keyVal == IBUS_Escape {
 		if e.preediter.RawKeyLen() > 0 {
-			e.commitPreeditViet(keyVal)
+			e.commitPreedit(keyVal)
 			return true, nil
 		}
 	}
 
 	if keyVal == IBUS_space || keyVal == IBUS_KP_Space {
 		if e.preediter.ResultLen() > 0 {
-			e.commitPreeditViet(keyVal)
+			e.commitPreedit(keyVal)
 			return true, nil
 		}
 	}
 
 	if e.preediter.RawKeyLen() > 2*teni.MaxWordLength {
-		e.commitPreeditViet(keyVal)
+		e.commitPreedit(keyVal)
 		return true, nil
 	}
 
@@ -177,11 +177,11 @@ func (e *VietEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state uint32
 		keyRune := rune(keyVal)
 
 		e.preediter.AddKey(keyRune)
-		e.updatePreeditViet()
+		e.updatePreedit()
 		return true, nil
 	} else {
 		if e.preediter.ResultLen() > 0 {
-			e.commitPreeditViet(keyVal)
+			e.commitPreedit(keyVal)
 			return true, nil
 		}
 		//pre-edit empty, just append
@@ -189,50 +189,50 @@ func (e *VietEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state uint32
 	}
 }
 
-func (e *VietEngine) FocusIn() *dbus.Error {
+func (e *IBusTeniEngine) FocusIn() *dbus.Error {
 	//log.Println("FocusIn")
 	e.RegisterProperties(e.propList)
 	e.preediter.Reset()
 	return nil
 }
 
-func (e *VietEngine) FocusOut() *dbus.Error {
+func (e *IBusTeniEngine) FocusOut() *dbus.Error {
 	//log.Println("FocusOut")
 	e.preediter.Reset()
 	return nil
 }
 
-func (e *VietEngine) Reset() *dbus.Error {
+func (e *IBusTeniEngine) Reset() *dbus.Error {
 	//log.Println("Reset")
 	e.preediter.Reset()
 	return nil
 }
 
-func (e *VietEngine) Enable() *dbus.Error {
+func (e *IBusTeniEngine) Enable() *dbus.Error {
 	//log.Println("Enable")
 	e.preediter.Reset()
 	return nil
 }
 
-func (e *VietEngine) Disable() *dbus.Error {
+func (e *IBusTeniEngine) Disable() *dbus.Error {
 	//log.Println("Disable")
 	e.preediter.Reset()
 	return nil
 }
 
-func (e *VietEngine) SetCapabilities(cap uint32) *dbus.Error {
+func (e *IBusTeniEngine) SetCapabilities(cap uint32) *dbus.Error {
 	//log.Println("SetCapabilities", cap)
 	e.enable = cap&IBUS_CAP_PREEDIT_TEXT != 0
 	e.capSurrounding = cap&IBUS_CAP_SURROUNDING_TEXT != 0
 	return nil
 }
 
-func (e *VietEngine) SetCursorLocation(x int32, y int32, w int32, h int32) *dbus.Error {
+func (e *IBusTeniEngine) SetCursorLocation(x int32, y int32, w int32, h int32) *dbus.Error {
 	//log.Println("SetCursorLocation", x, y, w, h)
 	return nil
 }
 
-func (e *VietEngine) SetContentType(purpose uint32, hints uint32) *dbus.Error {
+func (e *IBusTeniEngine) SetContentType(purpose uint32, hints uint32) *dbus.Error {
 	//log.Println("SetContentType", purpose, hints)
 
 	e.enable = purpose == IBUS_INPUT_PURPOSE_FREE_FORM ||
@@ -243,7 +243,7 @@ func (e *VietEngine) SetContentType(purpose uint32, hints uint32) *dbus.Error {
 }
 
 //@method(in_signature="su")
-func (e *VietEngine) PropertyActivate(propName string, propState uint32) *dbus.Error {
+func (e *IBusTeniEngine) PropertyActivate(propName string, propState uint32) *dbus.Error {
 	//log.Println("PropertyActivate", propName, propState)
 	if propName == PropKeyAbout {
 		exec.Command("xdg-open", HomePage).Start()
