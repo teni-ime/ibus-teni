@@ -170,6 +170,15 @@ func (pc *Engine) AddKey(key rune) {
 		appendCase := pc.appendChar(key, resultRunes)
 		resultRunes = appendCase.value
 		isCompleted = appendCase.findResult == FindResultMatchFull && appendCase.downLevel == 0
+
+		if appendCase.findResult == FindResultNotMatch ||
+			(appendCase.findResult == FindResultMatchPrefix && appendCase.downLevel >= 2) {
+			if pc.HasToneChar() {
+				resultRunes = append(pc.rawKeys, key)
+			} else {
+				resultRunes = append(pc.getCopyResult(), key)
+			}
+		}
 	} else {
 		var replaceStrCase *resultCase
 		replaceStrCase = pc.replaceStr(key, resultRunes)
@@ -192,6 +201,16 @@ func (pc *Engine) AddKey(key rune) {
 
 		resultRunes = replaceStrCase.value
 		isCompleted = replaceStrCase.findResult == FindResultMatchFull && replaceStrCase.downLevel == 0
+
+		if !replaceStrCase.revertMode &&
+			(replaceStrCase.findResult == FindResultNotMatch ||
+				(replaceStrCase.findResult == FindResultMatchPrefix && replaceStrCase.downLevel >= 2)) {
+			if pc.HasToneChar() {
+				resultRunes = append(pc.rawKeys, key)
+			} else {
+				resultRunes = append(pc.getCopyResult(), key)
+			}
+		}
 	}
 
 	pc.rawKeys = append(pc.rawKeys, key)
