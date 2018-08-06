@@ -64,7 +64,7 @@ func addTrie(trie *W, s []rune, down bool) {
 
 	//add down 1 level char
 	if dmap, exist := downLvlMap[s0]; exist {
-		for r := range dmap {
+		for _, r := range dmap {
 			if trie.N[r] == nil {
 				trie.N[r] = &W{}
 			}
@@ -76,43 +76,30 @@ func addTrie(trie *W, s []rune, down bool) {
 			}
 		}
 	}
-
 }
 
-func findWord(t *W, s []rune) (result uint8, downLevel uint8) {
+func findWord(t *W, s []rune) (result uint8) {
 
 	if len(s) == 0 {
 		if t.F {
-			return FindResultMatchFull, 0
+			return FindResultMatchFull
 		}
-		return FindResultMatchPrefix, 0
+		return FindResultMatchPrefix
 	}
 
 	c := unicode.ToLower(s[0])
 
 	if t.N[c] != nil {
-		r, d := findWord(t.N[c], s[1:])
+		r := findWord(t.N[c], s[1:])
 		if r != FindResultNotMatch {
-
-			return r, d
+			return r
 		}
 	}
 
-	if dmap, exist := downLvlMap[c]; exist {
-		for c, down := range dmap {
-			if t.N[c] != nil {
-				r, d := findWord(t.N[c], s[1:])
-				if r != FindResultNotMatch {
-
-					return FindResultMatchPrefix, down + d
-				}
-			}
-		}
-	}
-	return FindResultNotMatch, 0
+	return FindResultNotMatch
 }
 
-func findRootWord(s []rune) (result uint8, downLevel uint8) {
+func findRootWord(s []rune) (result uint8) {
 	return findWord(rootWordTrie, s)
 }
 

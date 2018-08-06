@@ -37,13 +37,11 @@ type Engine struct {
 type resultCase struct {
 	value      []rune
 	findResult uint8
-	downLevel  uint8
 	revertMode bool
 }
 
 func (pc *resultCase) better(pc2 *resultCase) bool {
-	return pc.findResult > pc2.findResult ||
-		(pc.findResult == pc2.findResult && pc.downLevel < pc2.downLevel)
+	return pc.findResult > pc2.findResult
 }
 
 type resultCases []*resultCase
@@ -169,10 +167,9 @@ func (pc *Engine) AddKey(key rune) {
 		(replaceCharMap[key] == nil && replaceStrMap[key] == nil) {
 		appendCase := pc.appendChar(key, resultRunes)
 		resultRunes = appendCase.value
-		isCompleted = appendCase.findResult == FindResultMatchFull && appendCase.downLevel == 0
+		isCompleted = appendCase.findResult == FindResultMatchFull
 
-		if appendCase.findResult == FindResultNotMatch ||
-			(appendCase.findResult == FindResultMatchPrefix && appendCase.downLevel >= 2) {
+		if appendCase.findResult == FindResultNotMatch {
 			if pc.HasToneChar() {
 				resultRunes = append(pc.rawKeys, key)
 			} else {
@@ -183,7 +180,7 @@ func (pc *Engine) AddKey(key rune) {
 		var replaceStrCase *resultCase
 		replaceStrCase = pc.replaceStr(key, resultRunes)
 
-		if replaceStrCase == nil || replaceStrCase.findResult != FindResultMatchFull || replaceStrCase.downLevel > 0 {
+		if replaceStrCase == nil || replaceStrCase.findResult != FindResultMatchFull {
 			replaceCharCase := pc.replaceChar(key, resultRunes)
 			if replaceCharCase != nil &&
 				(replaceCharCase.findResult != FindResultNotMatch || replaceCharCase.revertMode) &&
@@ -192,7 +189,7 @@ func (pc *Engine) AddKey(key rune) {
 			}
 		}
 
-		if replaceStrCase == nil || replaceStrCase.findResult != FindResultMatchFull || replaceStrCase.downLevel > 0 {
+		if replaceStrCase == nil || replaceStrCase.findResult != FindResultMatchFull {
 			appendCase := pc.appendChar(key, resultRunes)
 			if replaceStrCase == nil || appendCase.better(replaceStrCase) {
 				replaceStrCase = appendCase
@@ -200,11 +197,10 @@ func (pc *Engine) AddKey(key rune) {
 		}
 
 		resultRunes = replaceStrCase.value
-		isCompleted = replaceStrCase.findResult == FindResultMatchFull && replaceStrCase.downLevel == 0
+		isCompleted = replaceStrCase.findResult == FindResultMatchFull
 
 		if !replaceStrCase.revertMode &&
-			(replaceStrCase.findResult == FindResultNotMatch ||
-				(replaceStrCase.findResult == FindResultMatchPrefix && replaceStrCase.downLevel >= 2)) {
+			replaceStrCase.findResult == FindResultNotMatch {
 			if pc.HasToneChar() {
 				resultRunes = append(pc.rawKeys, key)
 			} else {
@@ -223,15 +219,13 @@ func (pc *Engine) appendChar(key rune, resultRunes []rune) *resultCase {
 	if len(resultRunes) > MaxWordLength {
 		return &resultCase{
 			value:      resultRunes,
-			downLevel:  0,
-			findResult: 0,
+			findResult: FindResultNotMatch,
 		}
 	}
 
-	result, downLvl := findRootWord(resultRunes)
+	result := findRootWord(resultRunes)
 	return pc.trySwapTone(&resultCase{
 		value:      resultRunes,
-		downLevel:  downLvl,
 		findResult: result,
 	})
 }
@@ -252,12 +246,11 @@ func (pc *Engine) replaceStr(key rune, resultRunes []rune) *resultCase {
 				resultRunes = append(resultRunes, key)
 			}
 
-			result, downLvl := findRootWord(resultRunesReplaced)
+			result := findRootWord(resultRunesReplaced)
 
 			return &resultCase{
 				value:      resultRunesReplaced,
 				findResult: result,
-				downLevel:  downLvl,
 				revertMode: replaceSR.R,
 			}
 		}
@@ -277,16 +270,15 @@ func (pc *Engine) replaceChar(key rune, resultRunes []rune) *resultCase {
 				if cReplace.R {
 					resultRunesCopy = append(resultRunesCopy, key)
 				}
-				result, downLvl := findRootWord(resultRunesCopy)
+				result := findRootWord(resultRunesCopy)
 
 				resultCases = append(resultCases, &resultCase{
 					value:      resultRunesCopy,
 					findResult: result,
-					downLevel:  downLvl,
 					revertMode: cReplace.R,
 				})
 
-				if downLvl == 0 && result == FindResultMatchFull {
+				if result == FindResultMatchFull {
 					break
 				}
 			}
@@ -303,7 +295,7 @@ func (pc *Engine) replaceChar(key rune, resultRunes []rune) *resultCase {
 }
 
 func (pc *Engine) trySwapTone(originalCase *resultCase) *resultCase {
-	if originalCase.findResult == FindResultMatchFull && originalCase.downLevel == 0 {
+	if originalCase.findResult == FindResultMatchFull {
 		return originalCase
 	}
 
@@ -325,7 +317,7 @@ func (pc *Engine) trySwapTone(originalCase *resultCase) *resultCase {
 	var replaceStrCase *resultCase
 	replaceStrCase = pc.replaceStr(toneKey, rsCopy)
 
-	if replaceStrCase == nil || replaceStrCase.findResult != FindResultMatchFull || replaceStrCase.downLevel > 0 {
+	if replaceStrCase == nil || replaceStrCase.findResult != FindResultMatchFull {
 		replaceCharCase := pc.replaceChar(toneKey, rsCopy)
 		if replaceCharCase != nil && replaceCharCase.findResult != FindResultNotMatch && (replaceStrCase == nil || replaceCharCase.better(replaceStrCase)) {
 			replaceStrCase = replaceCharCase
