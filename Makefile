@@ -20,8 +20,7 @@
 engine_name=teni
 ibus_e_name=ibus-engine-$(engine_name)
 pkg_name=ibus-$(engine_name)
-version=1.0.0
-release=demo
+version=1.1.0
 
 engine_dir=/usr/share/$(pkg_name)
 ibus_dir=/usr/share/ibus

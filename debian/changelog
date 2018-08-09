@@ -1,3 +1,11 @@
+ibus-teni (1.1.0-1) stable; urgency=low
+
+  * Release 1.1.0
+    - Thêm xử lý nhanh chóng khôi phục phím khi gõ từ không có trong tiếng Việt
+    - Sửa lỗi mất space khi gõ trên Dropbox Paper
+
+ -- Nguyen Cong Hoang <hoangnc.jp@gmail.com>  Thu, 9 Aug 2018 00:00:00 +0900
+
 ibus-teni (1.0.0-1) stable; urgency=low
 
   * Release 1.0.0

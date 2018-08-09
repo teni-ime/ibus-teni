@@ -22,7 +22,7 @@
 
 %define engine_name  teni
 %define package_name ibus-%{engine_name}
-%define version      1.0.0
+%define version      1.1.0
 
 
 #install directories ----------------------------------------------------------
@@ -81,6 +81,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Aug 9 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.1.0
+- Thêm xử lý nhanh chóng khôi phục phím khi gõ từ không có trong tiếng Việt
+- Sửa lỗi mất space khi gõ trên Dropbox Paper
 * Sun Jul 29 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.0.0
 - Phiên bản hoàn thiện chính thức: ibus-teni v1.0.0
 * Fri Jun 22 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 0.1
