@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
@@ -41,6 +42,7 @@ var genFuncMap = map[string]func(string) string{
 	"telex1": telex1,
 	"telex2": telex2,
 	"telex3": telex3,
+	"telexw": telexw,
 	"vni1":   vni1,
 	"vni2":   vni2,
 	"vni3":   vni3,
@@ -85,7 +87,11 @@ func genTestData(inputFileName string, lines []string) {
 			if len(line) == 0 {
 				continue
 			}
-			fmt.Fprintln(fo, line, genFunc(line))
+
+			inputStr := genFunc(line)
+			if len(inputStr) > 0 {
+				fmt.Fprintln(fo, line, inputStr)
+			}
 		}
 	}
 
@@ -162,6 +168,34 @@ func telex3(line string) string {
 	}
 
 	return baseStr + toneStr
+}
+
+func telexw(line string) string {
+	var or []rune
+	for _, r := range []rune(line) {
+		if bt, has := baseToneTelex[r]; has {
+			if bt2, has2 := baseToneTelex[bt.B]; has2 {
+				or = append(or, bt2.B, bt2.T, bt.T)
+			} else {
+				or = append(or, bt.B, bt.T)
+			}
+		} else {
+			or = append(or, r)
+		}
+	}
+
+	s := string(or)
+	if strings.Contains(s, "ow") {
+		return strings.Replace(s, "ow", "[", -1)
+	} else if strings.Contains(s, "uw") {
+		if rand.Int()%2 == 0 {
+			return strings.Replace(s, "uw", "]", -1)
+		} else {
+			return strings.Replace(s, "uw", "w", -1)
+		}
+	}
+
+	return ""
 }
 
 func vni1(line string) string {

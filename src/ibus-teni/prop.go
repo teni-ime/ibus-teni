@@ -23,14 +23,16 @@ package main
 import (
 	"github.com/godbus/dbus"
 	"github.com/sarim/goibus/ibus"
+	"teni"
 )
 
 const (
-	PropKeyAbout      = "about"
-	PropKeyMethodTeni = "method_teni"
-	PropKeyMethodVni  = "method_vni"
-	PropKeyToneStd    = "tone_std"
-	PropKeyToneNew    = "tone_new"
+	PropKeyAbout       = "about"
+	PropKeyMethodTeni  = "method_teni"
+	PropKeyMethodVni   = "method_vni"
+	PropKeyMethodTelex = "method_telex"
+	PropKeyToneStd     = "tone_std"
+	PropKeyToneNew     = "tone_new"
 )
 
 var runMode = ""
@@ -38,14 +40,17 @@ var runMode = ""
 func GetPropListByConfig(c *Config) *ibus.PropList {
 	teniChecked := ibus.PROP_STATE_UNCHECKED
 	vniChecked := ibus.PROP_STATE_UNCHECKED
+	telexChecked := ibus.PROP_STATE_UNCHECKED
 	toneStdChecked := ibus.PROP_STATE_UNCHECKED
 	toneNewChecked := ibus.PROP_STATE_UNCHECKED
 
 	switch c.InputMethod {
-	case ConfigMethodTeni:
+	case teni.IMTeni:
 		teniChecked = ibus.PROP_STATE_CHECKED
-	case ConfigMethodVni:
+	case teni.IMVni:
 		vniChecked = ibus.PROP_STATE_CHECKED
+	case teni.IMTelex:
+		telexChecked = ibus.PROP_STATE_CHECKED
 	}
 	switch c.ToneType {
 	case ConfigToneStd:
@@ -104,6 +109,18 @@ func GetPropListByConfig(c *Config) *ibus.PropList {
 		},
 		&ibus.Property{
 			Name:      "IBusProperty",
+			Key:       PropKeyMethodTelex,
+			Type:      ibus.PROP_TYPE_RADIO,
+			Label:     dbus.MakeVariant(ibus.NewText("Kiểu gõ Telex")),
+			Tooltip:   dbus.MakeVariant(ibus.NewText("Chỉ kiểu gõ Telex")),
+			Sensitive: true,
+			Visible:   true,
+			State:     telexChecked,
+			Symbol:    dbus.MakeVariant(ibus.NewText("TX")),
+			SubProps:  dbus.MakeVariant(*ibus.NewPropList()),
+		},
+		&ibus.Property{
+			Name:      "IBusProperty",
 			Key:       "-",
 			Type:      ibus.PROP_TYPE_SEPARATOR,
 			Label:     dbus.MakeVariant(ibus.NewText("")),
@@ -130,7 +147,7 @@ func GetPropListByConfig(c *Config) *ibus.PropList {
 			Key:       PropKeyToneNew,
 			Type:      ibus.PROP_TYPE_RADIO,
 			Label:     dbus.MakeVariant(ibus.NewText("Dấu thanh kiểu mới")),
-			Tooltip:   dbus.MakeVariant(ibus.NewText(`Lệch bên phải, không nên dùng"`)),
+			Tooltip:   dbus.MakeVariant(ibus.NewText("Lệch bên phải, không nên dùng")),
 			Sensitive: true,
 			Visible:   true,
 			State:     toneNewChecked,
