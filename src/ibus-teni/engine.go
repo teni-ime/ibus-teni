@@ -43,8 +43,6 @@ type IBusTeniEngine struct {
 	propList       *ibus.PropList
 }
 
-var emptyText = ibus.NewText("")
-
 var (
 	DictStdList = []string{DictVietnameseCm, DictVietnameseSp, DictVietnameseStd}
 	DictNewList = []string{DictVietnameseCm, DictVietnameseSp, DictVietnameseNew}
@@ -100,8 +98,8 @@ func (e *IBusTeniEngine) commitPreedit(lastKey uint32) {
 	}
 
 	//log.Printf("CommitText [%s]\n", commitStr)
+	e.HidePreeditText()
 	e.CommitText(ibus.NewText(commitStr))
-	e.UpdatePreeditText(emptyText, 0, true)
 }
 
 func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state uint32) (bool, *dbus.Error) {
