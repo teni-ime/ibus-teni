@@ -27,11 +27,19 @@ import (
 
 const MaxWordLength = 15
 
+type InputMethod int
+
+const (
+	IMTeni  InputMethod = iota << 0
+	IMVni   InputMethod = iota
+	IMTelex InputMethod = iota
+)
+
 type Engine struct {
 	rawKeys        []rune
 	resultStack    [][]rune
 	completedStack []bool
-	NumberOnly     bool
+	InputMethod    InputMethod
 }
 
 type resultCase struct {
@@ -57,7 +65,7 @@ func NewEngine() *Engine {
 		rawKeys:        nil,
 		resultStack:    nil,
 		completedStack: nil,
-		NumberOnly:     false,
+		InputMethod:    IMTeni,
 	}
 }
 
@@ -162,9 +170,10 @@ func (pc *Engine) AddKey(key rune) {
 	var isCompleted bool
 
 	if len(pc.rawKeys) > MaxWordLength ||
-		len(resultRunes) == 0 ||
-		(pc.NumberOnly && (key < '0' || key > '9')) ||
-		(replaceCharMap[key] == nil && replaceStrMap[key] == nil) {
+		(pc.InputMethod == IMVni && (key < '0' || key > '9')) ||
+		(pc.InputMethod == IMTelex && (key >= '0' && key <= '9')) ||
+		(len(resultRunes) == 0 && (pc.InputMethod != IMTelex || !InChangeCharMap(key))) ||
+		(replaceCharMap[key] == nil && replaceStrMap[key] == nil && (pc.InputMethod == IMTelex && !InChangeCharMap(key))) {
 		appendCase := pc.appendChar(key, resultRunes)
 		resultRunes = appendCase.value
 		isCompleted = appendCase.findResult == FindResultMatchFull
@@ -177,30 +186,38 @@ func (pc *Engine) AddKey(key rune) {
 			}
 		}
 	} else {
-		var replaceStrCase *resultCase
-		replaceStrCase = pc.replaceStr(key, resultRunes)
+		finalCase := pc.changeChar(key, resultRunes)
 
-		if replaceStrCase == nil || replaceStrCase.findResult != FindResultMatchFull {
+		if finalCase == nil || finalCase.findResult != FindResultMatchFull {
+			replaceStrCase := pc.replaceStr(key, resultRunes)
+			if replaceStrCase != nil &&
+				(replaceStrCase.findResult != FindResultNotMatch || replaceStrCase.revertMode) &&
+				(finalCase == nil || replaceStrCase.better(finalCase)) {
+				finalCase = replaceStrCase
+			}
+		}
+
+		if finalCase == nil || finalCase.findResult != FindResultMatchFull {
 			replaceCharCase := pc.replaceChar(key, resultRunes)
 			if replaceCharCase != nil &&
 				(replaceCharCase.findResult != FindResultNotMatch || replaceCharCase.revertMode) &&
-				(replaceStrCase == nil || replaceCharCase.better(replaceStrCase)) {
-				replaceStrCase = replaceCharCase
+				(finalCase == nil || replaceCharCase.better(finalCase)) {
+				finalCase = replaceCharCase
 			}
 		}
 
-		if replaceStrCase == nil || replaceStrCase.findResult != FindResultMatchFull {
+		if finalCase == nil || finalCase.findResult != FindResultMatchFull {
 			appendCase := pc.appendChar(key, resultRunes)
-			if replaceStrCase == nil || appendCase.better(replaceStrCase) {
-				replaceStrCase = appendCase
+			if finalCase == nil || appendCase.better(finalCase) {
+				finalCase = appendCase
 			}
 		}
 
-		resultRunes = replaceStrCase.value
-		isCompleted = replaceStrCase.findResult == FindResultMatchFull
+		resultRunes = finalCase.value
+		isCompleted = finalCase.findResult == FindResultMatchFull
 
-		if !replaceStrCase.revertMode &&
-			replaceStrCase.findResult == FindResultNotMatch {
+		if !finalCase.revertMode &&
+			finalCase.findResult == FindResultNotMatch {
 			if pc.HasToneChar() {
 				resultRunes = append(pc.rawKeys, key)
 			} else {
@@ -289,6 +306,24 @@ func (pc *Engine) replaceChar(key rune, resultRunes []rune) *resultCase {
 			sort.Sort(resultCases)
 			return resultCases[0]
 		}
+	}
+
+	return nil
+}
+
+func (pc *Engine) changeChar(key rune, resultRunes []rune) *resultCase {
+	if changeTo, exist := changeCharMap[key]; exist {
+		resultRunesCopy := copyRunes(resultRunes)
+		resultRunesCopy = append(resultRunesCopy, changeTo)
+
+		result := findRootWord(resultRunesCopy)
+
+		return &resultCase{
+			value:      resultRunesCopy,
+			findResult: result,
+			revertMode: false,
+		}
+
 	}
 
 	return nil

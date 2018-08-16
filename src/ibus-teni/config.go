@@ -27,20 +27,21 @@ import (
 	"log"
 	"os"
 	"os/user"
+	"teni"
 )
 
 const configFile = "%s/.config/ibus/ibus-%s.config.json"
 
+type ToneType uint8
+
 const (
-	ConfigMethodTeni = 0
-	ConfigMethodVni  = 1
-	ConfigToneStd    = 0
-	ConfigToneNew    = 1
+	ConfigToneStd ToneType = iota << 0
+	ConfigToneNew ToneType = iota
 )
 
 type Config struct {
-	InputMethod uint8
-	ToneType    uint8
+	InputMethod teni.InputMethod
+	ToneType    ToneType
 }
 
 func LoadConfig(engineName string) *Config {
@@ -55,7 +56,7 @@ func LoadConfig(engineName string) *Config {
 			}
 		}
 	}
-	return &Config{InputMethod: ConfigMethodTeni}
+	return &Config{InputMethod: teni.IMTeni}
 }
 
 func SaveConfig(c *Config, engineName string) {

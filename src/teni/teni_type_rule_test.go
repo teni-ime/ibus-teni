@@ -30,10 +30,11 @@ import (
 )
 
 const (
-	testDataDir         = "test-data"
-	testDataSuffix      = ".tdata"
-	vniTestDataFileSign = ".vni"
-	newTestDataFileSign = ".new"
+	testDataDir           = "test-data"
+	testDataSuffix        = ".tdata"
+	vniTestDataFileSign   = ".vni"
+	telexTestDataFileSign = ".telexw"
+	newTestDataFileSign   = ".new"
 )
 
 const (
@@ -101,7 +102,13 @@ func TestTeniTypeRule(t *testing.T) {
 		}
 
 		t.Log("Testing ", fo.Name())
-		pc.NumberOnly = strings.Contains(fo.Name(), vniTestDataFileSign)
+		if strings.Contains(fo.Name(), vniTestDataFileSign) {
+			pc.InputMethod = IMVni
+		} else if strings.Contains(fo.Name(), telexTestDataFileSign) {
+			pc.InputMethod = IMTelex
+		} else {
+			pc.InputMethod = IMTeni
+		}
 
 		for iLine, line := range readFileLines(filepath.Join(testDataDir, fo.Name())) {
 			inout := strings.Split(line, " ")

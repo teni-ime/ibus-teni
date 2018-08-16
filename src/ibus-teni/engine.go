@@ -67,7 +67,7 @@ func IBusTeniEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
 		config:     config,
 		propList:   GetPropListByConfig(config),
 	}
-	engine.preediter.NumberOnly = config.InputMethod == ConfigMethodVni
+	engine.preediter.InputMethod = config.InputMethod
 
 	ibus.PublishEngine(conn, objectPath, engine)
 	return objectPath
@@ -177,9 +177,10 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 
 	if (keyVal >= 'a' && keyVal <= 'z') ||
 		(keyVal >= 'A' && keyVal <= 'Z') ||
-		(keyVal >= '0' && keyVal <= '9' && e.preediter.ResultLen() > 0) {
-		keyRune := rune(keyVal)
+		(keyVal >= '0' && keyVal <= '9' && e.preediter.ResultLen() > 0) ||
+		(e.preediter.InputMethod == teni.IMTelex && teni.InChangeCharMap(rune(keyVal))) {
 
+		keyRune := rune(keyVal)
 		e.preediter.AddKey(keyRune)
 		e.updatePreedit()
 		return true, nil
@@ -259,15 +260,19 @@ func (e *IBusTeniEngine) PropertyActivate(propName string, propState uint32) *db
 	if propState == ibus.PROP_STATE_CHECKED &&
 		(propName == PropKeyMethodTeni ||
 			propName == PropKeyMethodVni ||
+			propName == PropKeyMethodTelex ||
 			propName == PropKeyToneStd ||
 			propName == PropKeyToneNew) {
 		switch propName {
 		case PropKeyMethodTeni:
-			e.config.InputMethod = ConfigMethodTeni
-			e.preediter.NumberOnly = false
+			e.config.InputMethod = teni.IMTeni
+			e.preediter.InputMethod = teni.IMTeni
 		case PropKeyMethodVni:
-			e.config.InputMethod = ConfigMethodVni
-			e.preediter.NumberOnly = true
+			e.config.InputMethod = teni.IMVni
+			e.preediter.InputMethod = teni.IMVni
+		case PropKeyMethodTelex:
+			e.config.InputMethod = teni.IMTelex
+			e.preediter.InputMethod = teni.IMTelex
 		case PropKeyToneStd:
 			e.config.ToneType = ConfigToneStd
 		case PropKeyToneNew:
