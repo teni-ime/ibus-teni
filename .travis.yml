@@ -15,7 +15,7 @@ install:
   - osc checkout $OSC_PATH
   - cd $SRC_DIR
   - make build src DESTDIR=../obs/$OSC_PATH
-  - cd ../obs
+  - cd ../obs/$OSC_PATH
   - osc addremove
   
 script:
