@@ -12,7 +12,7 @@ install:
   - cat ~/.oscrc
   - mkdir ../obs
   - cd ../obs
-  - #osc checkout home:vietnamese/ibus-teni
+  - osc checkout home:vietnamese/ibus-teni
   
 script:
   - echo END
