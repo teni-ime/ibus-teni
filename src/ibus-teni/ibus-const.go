@@ -25,8 +25,8 @@ package main
 
 const (
 	//IBusModifierType
-	IBUS_SHIFT_MASK = 1 << 0 //Shift is activated.
-	//IBUS_LOCK_MASK     = 1 << 1            //Cap Lock is locked.
+	IBUS_SHIFT_MASK   = 1 << 0 //Shift is activated.
+	IBUS_LOCK_MASK    = 1 << 1 //Cap Lock is locked.
 	IBUS_CONTROL_MASK = 1 << 2 //Control key is activated.
 	IBUS_MOD1_MASK    = 1 << 3 //Modifier 1 (Usually Alt_L (0x40), Alt_R (0x6c), Meta_L (0xcd)) activated.
 	//IBUS_MOD2_MASK     = 1 << 4            //Modifier 2 (Usually Num_Lock (0x4d)) activated.
