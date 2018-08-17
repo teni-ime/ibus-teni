@@ -2,7 +2,7 @@ language: go
 
 install:
   - make
-  - SRC_DIR = $(pwd)
+  - SRC_DIR=$(pwd)
   - sudo apt-get install -y osc
   - osc --version
   - echo "[general]" >> ~/.oscrc
