@@ -33,6 +33,7 @@ osc checkout $OSC_PATH
 cd $TRAVIS_BUILD_DIR
 
 echo "Build new OSC source -----------------------------------------------------------------------------------------------------"
+rm -rf ../obs/$OSC_PATH/*
 make build src DESTDIR=../obs/$OSC_PATH
 cd ../obs/$OSC_PATH
 
