@@ -1,7 +1,7 @@
 #!/bin/sh
 echo "Check HEAD Tag -----------------------------------------------------------------------------------------------------------"
 TAG=$(git name-rev --name-only --tags HEAD)
-if [[ $TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]
+if [[ $TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]];
 then
   echo "Release tag: $TAG deteted"
 else
