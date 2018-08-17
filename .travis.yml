@@ -4,4 +4,9 @@ install:
   - make
   - sudo apt-get install -y osc
   - osc --version
+  - mkdir ../obs
+  - cd ../obs
+  - osc checkout home:vietnamese/ibus-teni
   
+script:
+  - echo END
