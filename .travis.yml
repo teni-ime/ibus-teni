@@ -3,7 +3,7 @@ language: go
 
 install:
   - make
-  - sh deploy.sh
+  - bash deploy.bash
   
 script:
   - echo END
