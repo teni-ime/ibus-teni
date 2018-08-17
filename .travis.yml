@@ -16,7 +16,7 @@ install:
   - cd $SRC_DIR
   - make build src DESTDIR=../obs/$OSC_PATH
   - cd ../obs
-  - obs addremove
+  - osc addremove
   
 script:
   - echo END
