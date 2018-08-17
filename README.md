@@ -17,11 +17,13 @@ Teni là gì ?
 * Teni là kết hợp **Te**lex và V**ni** - 2 kiểu gõ tiếng Việt phổ biến nhất.
 * Teni cũng là kiểu gõ mặc định của bộ gõ này, vừa gõ được Telex, vừa gõ được Vni.
 
-### Sơ lượt tính năng
+
+### Sơ lược tính năng
 * Chỉ bảng mã Unicode
-* 2 kiểu gõ: 
-  * **Kiểu gõ Teni**
+* 3 kiểu gõ: 
+  * **Kiểu gõ Teni** (Telex + Vni, không cho phép gõ nhanh ư, ơ bằng w, [, ])
   * **Kiểu gõ Vni**
+  * **Kiểu gõ Telex** (cho phép gõ nhanh ư, ơ bằng w, [, ])
 * 2 kiểu đánh dấu thanh:
   * **Dấu thanh chuẩn**
   * **Dấu thanh kiểu mới**
@@ -77,7 +79,7 @@ Giấy phép
 Toàn bộ code IBus Teni được viết bởi Nguyen Cong Hoang và những người đóng góp được phát hành dưới giấy phép 
 [GNU General Public License version 3](https://opensource.org/licenses/GPL-3.0).
 
-Code trong thư mục [src/ibus-teni/vendor](src/third_party) là của các bên thứ 3,
+Code trong thư mục [src/ibus-teni/vendor](src/ibus-teni/vendor) là của các bên thứ 3,
 xem các thông báo bản quyền trong từng thư mục con.
 
 * godbus: xem [src/ibus-teni/vendor/github.com/godbus/dbus/README.markdown](src/ibus-teni/vendor/github.com/godbus/dbus/README.markdown)
