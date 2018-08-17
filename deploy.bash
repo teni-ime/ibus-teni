@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "Check branch and tag -----------------------------------------------------------------------------------------------------"
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [ $BRANCH == master ]; then
+BRANCH=$(git branch)
+if [ "$BRANCH" == "* master" ]; then
   echo "Master branch"
 else
   echo "Not in master branch ($BRANCH), do not deploy"
