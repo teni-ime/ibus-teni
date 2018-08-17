@@ -31,19 +31,17 @@ Teni là gì ?
 
 Cài đặt và cấu hình
 ------------------
-*Bên dưới là hướng dẫn cho Ubuntu 18 (các distro khác: [wiki](https://github.com/teni-ime/ibus-teni/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-c%C3%A0i-%C4%91%E1%BA%B7t))*
 
-### Cài đặt
+### Cài đặt (Ubuntu)
 
-1. Tải file package tại trang [release](https://github.com/teni-ime/ibus-teni/releases)
+```sh
+sudo add-apt-repository ppa:teni-ime/ibus-teni
+sudo apt-get update
+sudo apt-get install ibus-teni
+ibus restart
+```
 
-2. Double click vào file để cài hoặc chạy command:
-
-   `sudo dpkg -i ibus-teni-<version>.deb`
-
-3. Restart IBus:
-
-   `ibus restart`
+*Cài đặt cho các bản Linux khác và hướng dẫn cài đặt từ mã nguồn: [wiki](https://github.com/teni-ime/ibus-teni/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-c%C3%A0i-%C4%91%E1%BA%B7t)*
     
 ### Cấu hình
 1. [Keyboard input method system: IBus](https://github.com/teni-ime/ibus-teni/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-c%E1%BA%A5u-h%C3%ACnh#1-keyboard-input-method-system-ibus)
@@ -51,7 +49,7 @@ Cài đặt và cấu hình
     
 ### Gỡ bỏ
 ```
-sudo apt remove ibus-teni -y
+sudo apt remove ibus-teni
 ibus restart
 ```
 
