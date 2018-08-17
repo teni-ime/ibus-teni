@@ -2,6 +2,7 @@ language: go
 
 install:
   - make
+  - SRC_DIR = $(pwd)
   - sudo apt-get install -y osc
   - osc --version
   - echo "[general]" >> ~/.oscrc
@@ -12,6 +13,10 @@ install:
   - mkdir ../obs
   - cd ../obs
   - osc checkout $OSC_PATH
+  - cd $SRC_DIR
+  - make build src DESTDIR=../obs/$OSC_PATH
+  - cd ../obs
+  - obs addremove
   
 script:
   - echo END
