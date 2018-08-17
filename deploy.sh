@@ -5,7 +5,7 @@ then
   exit 0
 fi
 
-SRC_DIR=$(pwd)
+sudo apt-get update
 sudo apt-get install -y osc
 osc --version
 
@@ -15,6 +15,7 @@ echo "[https://api.opensuse.org]" >> ~/.oscrc
 echo "user = $OSC_USER" >> ~/.oscrc
 echo "pass = $OSC_PASS" >> ~/.oscrc
 
+SRC_DIR=$(pwd)
 mkdir ../obs
 cd ../obs
 osc checkout $OSC_PATH
