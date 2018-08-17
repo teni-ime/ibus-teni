@@ -1,8 +1,15 @@
 #!/bin/bash
-echo "Check HEAD Tag -----------------------------------------------------------------------------------------------------------"
+echo "Check branch and tag -----------------------------------------------------------------------------------------------------"
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ $BRANCH == master ]; then
+  echo "Master branch"
+else
+  echo "Not in master branch ($BRANCH), do not deploy"
+  exit 0
+fi
+
 TAG=$(git name-rev --name-only --tags HEAD)
-if [[ $TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]];
-then
+if [[ $TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
   echo "Release tag: $TAG deteted"
 else
   echo "Release tag not found ($TAG), do not deploy"
