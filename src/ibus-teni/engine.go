@@ -177,7 +177,9 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 		(keyVal >= 'A' && keyVal <= 'Z') ||
 		(keyVal >= '0' && keyVal <= '9' && e.preediter.ResultLen() > 0) ||
 		(e.preediter.InputMethod == teni.IMTelex && teni.InChangeCharMap(rune(keyVal))) {
-
+		if e.preediter.InputMethod == teni.IMTelex && state&IBUS_LOCK_MASK != 0 {
+			keyVal = teni.SwitchCaplock(keyVal)
+		}
 		keyRune := rune(keyVal)
 		e.preediter.AddKey(keyRune)
 		e.updatePreedit()
