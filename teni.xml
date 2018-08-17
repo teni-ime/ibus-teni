@@ -23,7 +23,7 @@
     <name>org.freedesktop.IBus.Teni</name>
     <description>Vietnamese input engine for IBus</description>
     <exec>/usr/lib/ibus-engine-teni cd /usr/share/ibus-teni</exec>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 	<author>Nguyễn Công Hoàng &lt;hoangnc.jp@gmail.com&gt;</author>
     <license>GPLv3</license>
     <homepage>http://github.com/ibus-teni/ibus-teni/</homepage>
