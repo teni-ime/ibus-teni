@@ -1,7 +1,11 @@
-language: go
+language: bash
 
-go:
-  - "1.x"
-  - "1.8"
-  - "1.10.x"
-  - master
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install -y golang
+
+install:
+  - make
+  - sudo apt-get install -y osc
+  - osc --version
+  
