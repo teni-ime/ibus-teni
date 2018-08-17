@@ -9,7 +9,6 @@ install:
   - echo "[https://api.opensuse.org]" >> ~/.oscrc
   - echo "user = $OSC_PASS" >> ~/.oscrc
   - echo "pass = $OSC_USER" >> ~/.oscrc
-  - cat ~/.oscrc
   - mkdir ../obs
   - cd ../obs
   - osc checkout home:vietnamese/ibus-teni
