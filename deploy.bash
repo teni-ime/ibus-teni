@@ -1,18 +1,9 @@
 #!/bin/bash
-echo "Check branch and tag -----------------------------------------------------------------------------------------------------"
-BRANCH=$(git branch)
-if [ "$BRANCH" == "* master" ]; then
-  echo "Master branch"
+echo "Check tag ----------------------------------------------------------------------------------------------------------------"
+if [[ $TRAVIS_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+  echo "Release tag: $TRAVIS_TAG deteted"
 else
-  echo "Not in master branch ($BRANCH), do not deploy"
-  exit 0
-fi
-
-TAG=$(git name-rev --name-only --tags HEAD)
-if [[ $TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
-  echo "Release tag: $TAG deteted"
-else
-  echo "Release tag not found ($TAG), do not deploy"
+  echo "Release tag not found ($TRAVIS_TAG), do not deploy"
   exit 0
 fi
 
@@ -36,11 +27,10 @@ echo "user = $OSC_USER" >> ~/.oscrc
 echo "pass = $OSC_PASS" >> ~/.oscrc
 
 echo "OSC checkout -------------------------------------------------------------------------------------------------------------"
-SRC_DIR=$(pwd)
 mkdir ../obs
 cd ../obs
 osc checkout $OSC_PATH
-cd $SRC_DIR
+cd $TRAVIS_BUILD_DIR
 
 echo "Build new OSC source -----------------------------------------------------------------------------------------------------"
 make build src DESTDIR=../obs/$OSC_PATH
