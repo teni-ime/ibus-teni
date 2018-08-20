@@ -313,6 +313,19 @@ func (pc *Engine) replaceChar(key rune, resultRunes []rune) *resultCase {
 
 func (pc *Engine) changeChar(key rune, resultRunes []rune) *resultCase {
 	if changeTo, exist := changeCharMap[key]; exist {
+		lr := len(resultRunes)
+		lrk := len(pc.rawKeys)
+		//revert mode
+		if lr > 0 && lrk > 0 && key != resultRunes[lr-1] && pc.rawKeys[lrk-1] == key {
+			resultRunesCopy := copyRunes(resultRunes)
+			resultRunesCopy[lr-1] = key
+			return &resultCase{
+				value:      resultRunesCopy,
+				findResult: FindResultNotMatch,
+				revertMode: true,
+			}
+		}
+
 		resultRunesCopy := copyRunes(resultRunes)
 		resultRunesCopy = append(resultRunesCopy, changeTo)
 
