@@ -22,7 +22,7 @@
 
 %define engine_name  teni
 %define package_name ibus-%{engine_name}
-%define version      1.2.0
+%define version      1.2.1
 
 
 #install directories ----------------------------------------------------------
@@ -81,6 +81,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Aug 21 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.2.1
+- Sửa lỗi khôi phục phím w, [, ] trên kiểu gõ Telex
+- Bổ sung danh sách từ tiếng Việt: xịn
 * Fri Aug 17 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.2.0
 - Thêm kiểu gõ Telex (cho phép gõ nhanh bằng w, [,])
 - Sửa lỗi mất gợi ý khi gõ trên thanh địa chỉ của Chrome

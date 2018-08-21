@@ -21,7 +21,7 @@ Section: utils
 Priority: extra
 Maintainer: Nguyen Cong Hoang <hoangnc.jp@gmail.com>
 Build-Depends: debhelper, golang
-Standards-Version: 1.2.0
+Standards-Version: 1.2.1
 Homepage: https://github.com/teni-ime/ibus-teni
 
 Package: ibus-teni
