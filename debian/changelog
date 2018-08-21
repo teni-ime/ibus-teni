@@ -1,3 +1,11 @@
+ibus-teni (1.2.1-1) stable; urgency=low
+
+  * Release 1.2.1
+    - Sửa lỗi khôi phục phím w, [, ] trên kiểu gõ Telex
+    - Bổ sung danh sách từ tiếng Việt: xịn
+
+ -- Nguyen Cong Hoang <hoangnc.jp@gmail.com>  Tue, 21 Aug 2018 00:00:00 +0900
+
 ibus-teni (1.2.0-1) stable; urgency=low
 
   * Release 1.2.0
