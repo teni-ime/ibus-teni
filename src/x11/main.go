@@ -4,17 +4,21 @@ package main
 #cgo LDFLAGS: -lX11
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
-#include <stdlib.h>
 
-char* ucharfree(unsigned char* uc) {
-	free(uc);
+inline char* ucharfree(unsigned char* uc) {
+	XFree(uc);
 }
 
-char* uchar2char(unsigned char* uc) {
+inline char* uchar2char(unsigned char* uc, unsigned long len) {
+	for (int i=0; i<len; i++) {
+		if (uc[i] == 0) {
+			uc[i] = '\n';
+		}
+	}
 	return (char*)uc;
 }
 
-unsigned long uchar2long(unsigned char* uc) {
+inline unsigned long uchar2long(unsigned char* uc) {
 	return *(unsigned long*)(uc);
 }
 */
@@ -23,9 +27,9 @@ import (
 	"fmt"
 )
 
-const MaxPropertyLen = 128
+const MaxPropertyLen = 512
 
-func GetUCharProperty(display *C.Display, window C.Window, propName string) *C.uchar {
+func GetUCharProperty(display *C.Display, window C.Window, propName string) (*C.uchar, C.ulong) {
 	var actualType C.Atom
 	var actualFormat C.int
 	var nItems, bytesAfter C.ulong
@@ -36,24 +40,24 @@ func GetUCharProperty(display *C.Display, window C.Window, propName string) *C.u
 	status := C.XGetWindowProperty(display, window, filterAtom, 0, MaxPropertyLen, C.False, C.AnyPropertyType, &actualType, &actualFormat, &nItems, &bytesAfter, &prop)
 
 	if status == C.Success {
-		return prop
+		return prop, nItems
 	}
 
-	return nil
+	return nil, 0
 }
 
 func GetStringProperty(display *C.Display, window C.Window, propName string) string {
-	prop := GetUCharProperty(display, window, propName)
+	prop, len := GetUCharProperty(display, window, propName)
 	if prop != nil {
 		defer C.ucharfree(prop)
-		return C.GoString(C.uchar2char(prop))
+		return C.GoString(C.uchar2char(prop, len))
 	}
 
 	return ""
 }
 
 func GetLongProperty(display *C.Display, window C.Window, propName string) C.ulong {
-	prop := GetUCharProperty(display, window, propName)
+	prop, _ := GetUCharProperty(display, window, propName)
 	if prop != nil {
 		defer C.ucharfree(prop)
 		return C.uchar2long(prop)
