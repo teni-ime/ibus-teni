@@ -49,7 +49,8 @@ type resultCase struct {
 }
 
 func (pc *resultCase) better(pc2 *resultCase) bool {
-	return pc.findResult > pc2.findResult
+	return pc.findResult > pc2.findResult ||
+		(pc.findResult == pc2.findResult && pc.revertMode && !pc2.revertMode)
 }
 
 type resultCases []*resultCase
@@ -316,10 +317,13 @@ func (pc *Engine) changeChar(key rune, originalRunes []rune) *resultCase {
 		lrk := len(pc.rawKeys)
 		//revert mode
 		if lr > 0 && lrk > 0 && key != originalRunes[lr-1] && pc.rawKeys[lrk-1] == key {
-			resultRunesCopy := copyRunes(originalRunes)
-			resultRunesCopy[lr-1] = key
+			var resultRunes []rune
+			if lrs := len(pc.resultStack); lrs > 1 {
+				resultRunes = copyRunes(pc.resultStack[lrs-2])
+			}
+			resultRunes = append(resultRunes, key)
 			return &resultCase{
-				value:      resultRunesCopy,
+				value:      resultRunes,
 				findResult: FindResultNotMatch,
 				revertMode: true,
 			}
