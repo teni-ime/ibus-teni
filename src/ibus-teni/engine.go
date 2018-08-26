@@ -75,7 +75,8 @@ func (e *IBusTeniEngine) updatePreedit() {
 	e.UpdatePreeditTextWithMode(ibus.NewText(e.preediter.GetResultStr()), e.preediter.ResultLen(), true, ibus.IBUS_ENGINE_PREEDIT_COMMIT)
 }
 
-func (e *IBusTeniEngine) commitPreedit(lastKey uint32) {
+func (e *IBusTeniEngine) commitPreedit(lastKey uint32) bool {
+	var keyAppended = false
 	var commitStr string
 	if lastKey == IBUS_Escape {
 		commitStr = e.preediter.GetRawStr()
@@ -95,11 +96,14 @@ func (e *IBusTeniEngine) commitPreedit(lastKey uint32) {
 	if lastKey >= 0x20 && lastKey <= 0xFF {
 		//append printable keys
 		commitStr += string(lastKey)
+		keyAppended = true
 	}
 
 	//log.Printf("CommitText [%s]\n", commitStr)
 	e.HidePreeditText()
 	e.CommitText(ibus.NewText(commitStr))
+
+	return keyAppended
 }
 
 func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state uint32) (bool, *dbus.Error) {
@@ -186,10 +190,19 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 		return true, nil
 	} else {
 		if e.preediter.ResultLen() > 0 {
-			e.commitPreedit(keyVal)
-			return true, nil
+			if e.commitPreedit(keyVal) {
+				//lastKey already appended to commit string
+				return true, nil
+			} else {
+				//forward lastKey
+				if e.capSurrounding {
+					return false, nil
+				}
+				e.ForwardKeyEvent(keyVal, keyCode, state)
+				return true, nil
+			}
 		}
-		//pre-edit empty, just append
+		//pre-edit empty, just forward key
 		return false, nil
 	}
 }
