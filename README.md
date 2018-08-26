@@ -61,13 +61,13 @@ Sử dụng
     * **Chữ đang gõ bị mất**
     * **Chữ đang gõ được commit vào vị trí mới con trỏ**
     * **Chữ đang gõ được commit vào vị trí cũ**
-* **Vì vậy đừng quên commit: khi gõ chỉ một chữ, hoặc chữ cuối câu, hoặc sửa chữ giữa câu: nhấn Ctrl hoặc phím mũi tên (↑→↓←) để commit.**
+* **Vì vậy đừng quên commit: khi gõ chỉ một chữ, hoặc chữ cuối câu, hoặc sửa chữ giữa câu: nhấn phím *Ctrl* để commit.**
          
 
 Các phiên bản
 ------------
 * Phiên bản thử nghiệm không công khai hoàn thành vào cuối tháng 5/2018
-* Phiên bản thử nghiệm công khai dự kiến phát hành vào đầu tháng 7/2018
+* Phiên bản thử nghiệm công khai phát hành vào đầu tháng 7/2018
 * Phiên bản chính thức phát hành vào ngày 29/7/2018
 
 Xem trang [release](https://github.com/teni-ime/ibus-teni/releases) để biết chi tiết các phiên bản đã phát hành.

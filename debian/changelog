@@ -1,3 +1,11 @@
+ibus-teni (1.2.2-1) stable; urgency=low
+
+  * Release 1.2.2
+    - Thay đổi xử lý commit: forward tất cả các phím khi commit
+    - Sửa lỗi khôi phục phím khi nhấn phím dấu 2 lần
+
+ -- Nguyen Cong Hoang <hoangnc.jp@gmail.com>  Sun, 26 Aug 2018 00:00:00 +0900
+
 ibus-teni (1.2.1-1) stable; urgency=low
 
   * Release 1.2.1

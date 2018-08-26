@@ -49,7 +49,8 @@ type resultCase struct {
 }
 
 func (pc *resultCase) better(pc2 *resultCase) bool {
-	return pc.findResult > pc2.findResult
+	return pc.findResult > pc2.findResult ||
+		(pc.findResult == pc2.findResult && pc.revertMode && !pc2.revertMode)
 }
 
 type resultCases []*resultCase
@@ -231,42 +232,42 @@ func (pc *Engine) AddKey(key rune) {
 	pc.completedStack = append(pc.completedStack, isCompleted)
 }
 
-func (pc *Engine) appendChar(key rune, resultRunes []rune) *resultCase {
-	resultRunes = append(resultRunes, key)
-	if len(resultRunes) > MaxWordLength {
+func (pc *Engine) appendChar(key rune, originalRunes []rune) *resultCase {
+	originalRunes = append(originalRunes, key)
+	if len(originalRunes) > MaxWordLength {
 		return &resultCase{
-			value:      resultRunes,
+			value:      originalRunes,
 			findResult: FindResultNotMatch,
 		}
 	}
 
-	result := findRootWord(resultRunes)
+	result := findRootWord(originalRunes)
 	return pc.trySwapTone(&resultCase{
-		value:      resultRunes,
+		value:      originalRunes,
 		findResult: result,
 	})
 }
 
-func (pc *Engine) replaceStr(key rune, resultRunes []rune) *resultCase {
+func (pc *Engine) replaceStr(key rune, originalRunes []rune) *resultCase {
 	rsm := replaceStrMap[key]
 	if rsm == nil {
 		return nil
 	}
 
-	resultText := string(resultRunes)
+	resultText := string(originalRunes)
 	for findText, replaceSR := range rsm {
 		if foundIndex := strings.Index(resultText, findText); foundIndex >= 0 {
-			resultTextReplaced := strings.Replace(resultText, findText, replaceSR.S, 1)
+			replacedText := strings.Replace(resultText, findText, replaceSR.S, 1)
 
-			resultRunesReplaced := []rune(resultTextReplaced)
+			resultRunes := []rune(replacedText)
 			if replaceSR.R {
-				resultRunes = append(resultRunes, key)
+				originalRunes = append(originalRunes, key)
 			}
 
-			result := findRootWord(resultRunesReplaced)
+			result := findRootWord(resultRunes)
 
 			return &resultCase{
-				value:      resultRunesReplaced,
+				value:      resultRunes,
 				findResult: result,
 				revertMode: replaceSR.R,
 			}
@@ -276,21 +277,21 @@ func (pc *Engine) replaceStr(key rune, resultRunes []rune) *resultCase {
 	return nil
 }
 
-func (pc *Engine) replaceChar(key rune, resultRunes []rune) *resultCase {
+func (pc *Engine) replaceChar(key rune, originalRunes []rune) *resultCase {
 	if rcm := replaceCharMap[key]; rcm != nil {
 		resultCases := resultCases{}
-		for i := len(resultRunes) - 1; i >= 0; i-- {
-			c := resultRunes[i]
+		for i := len(originalRunes) - 1; i >= 0; i-- {
+			c := originalRunes[i]
 			if cReplace, found := rcm[c]; found {
-				resultRunesCopy := copyRunes(resultRunes)
-				resultRunesCopy[i] = cReplace.C
+				resultRunes := copyRunes(originalRunes)
+				resultRunes[i] = cReplace.C
 				if cReplace.R {
-					resultRunesCopy = append(resultRunesCopy, key)
+					resultRunes = append(resultRunes, key)
 				}
-				result := findRootWord(resultRunesCopy)
+				result := findRootWord(resultRunes)
 
 				resultCases = append(resultCases, &resultCase{
-					value:      resultRunesCopy,
+					value:      resultRunes,
 					findResult: result,
 					revertMode: cReplace.R,
 				})
@@ -299,7 +300,6 @@ func (pc *Engine) replaceChar(key rune, resultRunes []rune) *resultCase {
 					break
 				}
 			}
-
 		}
 
 		if len(resultCases) > 0 {
@@ -311,32 +311,34 @@ func (pc *Engine) replaceChar(key rune, resultRunes []rune) *resultCase {
 	return nil
 }
 
-func (pc *Engine) changeChar(key rune, resultRunes []rune) *resultCase {
+func (pc *Engine) changeChar(key rune, originalRunes []rune) *resultCase {
 	if changeTo, exist := changeCharMap[key]; exist {
-		lr := len(resultRunes)
+		lr := len(originalRunes)
 		lrk := len(pc.rawKeys)
 		//revert mode
-		if lr > 0 && lrk > 0 && key != resultRunes[lr-1] && pc.rawKeys[lrk-1] == key {
-			resultRunesCopy := copyRunes(resultRunes)
-			resultRunesCopy[lr-1] = key
+		if lr > 0 && lrk > 0 && key != originalRunes[lr-1] && pc.rawKeys[lrk-1] == key {
+			var resultRunes []rune
+			if lrs := len(pc.resultStack); lrs > 1 {
+				resultRunes = copyRunes(pc.resultStack[lrs-2])
+			}
+			resultRunes = append(resultRunes, key)
 			return &resultCase{
-				value:      resultRunesCopy,
+				value:      resultRunes,
 				findResult: FindResultNotMatch,
 				revertMode: true,
 			}
 		}
 
-		resultRunesCopy := copyRunes(resultRunes)
-		resultRunesCopy = append(resultRunesCopy, changeTo)
+		resultRunes := copyRunes(originalRunes)
+		resultRunes = append(resultRunes, changeTo)
 
-		result := findRootWord(resultRunesCopy)
+		result := findRootWord(resultRunes)
 
 		return &resultCase{
-			value:      resultRunesCopy,
+			value:      resultRunes,
 			findResult: result,
 			revertMode: false,
 		}
-
 	}
 
 	return nil

@@ -22,7 +22,7 @@
 
 %define engine_name  teni
 %define package_name ibus-%{engine_name}
-%define version      1.2.1
+%define version      1.2.2
 
 
 #install directories ----------------------------------------------------------
@@ -81,6 +81,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Sun Aug 26 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.2.2
+- Thay đổi xử lý commit: forward tất cả các phím khi commit
+- Sửa lỗi khôi phục phím khi nhấn phím dấu 2 lần
 * Tue Aug 21 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.2.1
 - Sửa lỗi khôi phục phím w, [, ] trên kiểu gõ Telex
 - Bổ sung danh sách từ tiếng Việt: xịn
