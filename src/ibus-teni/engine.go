@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"github.com/godbus/dbus"
 	"github.com/sarim/goibus/ibus"
+	"log"
 	"os/exec"
 	"teni"
 	"time"
@@ -37,10 +38,12 @@ type IBusTeniEngine struct {
 	ibus.Engine
 	preediter      *teni.Engine
 	enable         bool
+	excluded       bool
 	capSurrounding bool
 	engineName     string
 	config         *Config
 	propList       *ibus.PropList
+	excludeMap     *ExcludeMap
 }
 
 var (
@@ -58,12 +61,22 @@ func IBusTeniEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
 	} else {
 		teni.InitWordTrie(DictNewList...)
 	}
+
+	em := &ExcludeMap{
+		m: map[string]bool{
+			"code":           true,
+			"konsole":        true,
+			"xterm":          true,
+			"jetbrains-idea": true,
+		},
+	}
 	engine := &IBusTeniEngine{
 		Engine:     ibus.BaseEngine(conn, objectPath),
 		preediter:  teni.NewEngine(),
 		engineName: engineName,
 		config:     config,
 		propList:   GetPropListByConfig(config),
+		excludeMap: em,
 	}
 	engine.preediter.InputMethod = config.InputMethod
 
@@ -109,7 +122,7 @@ func (e *IBusTeniEngine) commitPreedit(lastKey uint32) bool {
 func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state uint32) (bool, *dbus.Error) {
 	//log.Println("ProcessKeyEvent", keyVal, keyCode, state)
 
-	if !e.enable ||
+	if !e.enable || e.excluded ||
 		state&IBUS_RELEASE_MASK != 0 || //Ignore key-up event
 		(state&IBUS_SHIFT_MASK == 0 && (keyVal == IBUS_Shift_L || keyVal == IBUS_Shift_R)) { //Ignore 1 shift key
 		return false, nil
@@ -211,6 +224,19 @@ func (e *IBusTeniEngine) FocusIn() *dbus.Error {
 	//log.Println("FocusIn")
 	e.RegisterProperties(e.propList)
 	e.preediter.Reset()
+
+	if e.excludeMap != nil {
+		ac := x11GetActiveWindowClass()
+		log.Println("x11GetActiveWindowClass", ac)
+		for _, c := range ac {
+			if e.excludeMap.Contains(c) {
+				e.excluded = true
+				return nil
+			}
+		}
+	}
+
+	e.excluded = false
 	return nil
 }
 
