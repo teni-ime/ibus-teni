@@ -41,7 +41,7 @@ License:        GPL-3.0
 Group:          System/Localization
 URL:            https://github.com/teni-ime/ibus-teni
 Packager:       Nguyen Cong Hoang <hoangnc.jp@gmail.com>
-BuildRequires:  go
+BuildRequires:  go, libX11-devel
 Requires:       ibus
 Provides:       locale(ibus:vi)
 Source0:        %{package_name}-%{version}.tar.gz

@@ -23,6 +23,6 @@ Architecture: any
 Version: 1.2.2-0
 Maintainer: Nguyen Cong Hoang <hoangnc.jp@gmail.com>
 Homepage: https://github.com/teni-ime/ibus-teni
-Build-Depends: debhelper, golang
+Build-Depends: debhelper, golang, libx11-dev
 Files:
  0 0 ibus-teni-1.2.2.tar.gz

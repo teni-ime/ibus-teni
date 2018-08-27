@@ -85,7 +85,7 @@ rpm: clean
 
 
 #start ubuntu docker:   docker  run  -v `pwd`:`pwd` -w `pwd` -i -t  ubuntu bash
-#install buildpackages: apt update && apt install dh-make golang -y
+#install buildpackages: apt update && apt install dh-make golang libx11-dev -y
 deb: clean
 	dpkg-buildpackage
 
