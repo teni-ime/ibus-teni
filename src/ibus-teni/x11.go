@@ -85,6 +85,9 @@ func x11CloseDisplay(d *C.Display) {
 }
 
 func x11GetActiveWindowClass() []string {
+	defer func() {
+		recover()
+	}()
 	display := x11OpenDisplay()
 	if display != nil {
 		defer x11CloseDisplay(display)
