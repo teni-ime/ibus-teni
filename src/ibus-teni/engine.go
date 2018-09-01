@@ -98,8 +98,6 @@ func (e *IBusTeniEngine) commitPreedit(lastKey uint32) bool {
 	}
 	e.preediter.Reset()
 
-	//log.Printf("lastKey %x, %s", lastKey, string(lastKey))
-
 	//Convert num-pad key to normal number
 	if (lastKey >= IBUS_KP_0 && lastKey <= IBUS_KP_9) ||
 		(lastKey >= IBUS_KP_Multiply && lastKey <= IBUS_KP_Divide) {
@@ -112,7 +110,6 @@ func (e *IBusTeniEngine) commitPreedit(lastKey uint32) bool {
 		keyAppended = true
 	}
 
-	//log.Printf("CommitText [%s]\n", commitStr)
 	e.HidePreeditText()
 	e.CommitText(ibus.NewText(commitStr))
 
@@ -120,7 +117,6 @@ func (e *IBusTeniEngine) commitPreedit(lastKey uint32) bool {
 }
 
 func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state uint32) (bool, *dbus.Error) {
-	//log.Println("ProcessKeyEvent", keyVal, keyCode, state)
 
 	if !e.enable || e.excluded ||
 		state&IBUS_RELEASE_MASK != 0 || //Ignore key-up event
@@ -221,7 +217,6 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 }
 
 func (e *IBusTeniEngine) FocusIn() *dbus.Error {
-	//log.Println("FocusIn")
 	e.RegisterProperties(e.propList)
 	e.preediter.Reset()
 
@@ -241,43 +236,36 @@ func (e *IBusTeniEngine) FocusIn() *dbus.Error {
 }
 
 func (e *IBusTeniEngine) FocusOut() *dbus.Error {
-	//log.Println("FocusOut")
 	e.preediter.Reset()
 	return nil
 }
 
 func (e *IBusTeniEngine) Reset() *dbus.Error {
-	//log.Println("Reset")
 	e.preediter.Reset()
 	return nil
 }
 
 func (e *IBusTeniEngine) Enable() *dbus.Error {
-	//log.Println("Enable")
 	e.preediter.Reset()
 	return nil
 }
 
 func (e *IBusTeniEngine) Disable() *dbus.Error {
-	//log.Println("Disable")
 	e.preediter.Reset()
 	return nil
 }
 
 func (e *IBusTeniEngine) SetCapabilities(cap uint32) *dbus.Error {
-	//log.Println("SetCapabilities", cap)
 	e.enable = cap&IBUS_CAP_PREEDIT_TEXT != 0
 	e.capSurrounding = cap&IBUS_CAP_SURROUNDING_TEXT != 0
 	return nil
 }
 
 func (e *IBusTeniEngine) SetCursorLocation(x int32, y int32, w int32, h int32) *dbus.Error {
-	//log.Println("SetCursorLocation", x, y, w, h)
 	return nil
 }
 
 func (e *IBusTeniEngine) SetContentType(purpose uint32, hints uint32) *dbus.Error {
-	//log.Println("SetContentType", purpose, hints)
 
 	e.enable = purpose == IBUS_INPUT_PURPOSE_FREE_FORM ||
 		purpose == IBUS_INPUT_PURPOSE_ALPHA ||
@@ -288,7 +276,6 @@ func (e *IBusTeniEngine) SetContentType(purpose uint32, hints uint32) *dbus.Erro
 
 //@method(in_signature="su")
 func (e *IBusTeniEngine) PropertyActivate(propName string, propState uint32) *dbus.Error {
-	//log.Println("PropertyActivate", propName, propState)
 	if propName == PropKeyAbout {
 		exec.Command("xdg-open", HomePage).Start()
 		return nil
