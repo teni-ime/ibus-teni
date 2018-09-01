@@ -29,7 +29,7 @@ depends=(ibus)
 makedepends=('go' 'libx11')
 source=($pkgname-$pkgver.tar.gz)
 md5sums=('SKIP')
-
+options=('!strip')
 
 build() {
   cd "$pkgname-$pkgver"
