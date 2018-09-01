@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"github.com/godbus/dbus"
 	"github.com/sarim/goibus/ibus"
-	"log"
 	"os/exec"
 	"teni"
 	"time"
@@ -38,12 +37,12 @@ type IBusTeniEngine struct {
 	ibus.Engine
 	preediter      *teni.Engine
 	enable         bool
-	excluded       bool
+	excepted       bool
 	capSurrounding bool
 	engineName     string
 	config         *Config
 	propList       *ibus.PropList
-	excludeMap     *ExcludeMap
+	exceptMap      *ExceptMap
 }
 
 var (
@@ -62,24 +61,18 @@ func IBusTeniEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
 		teni.InitWordTrie(DictNewList...)
 	}
 
-	em := &ExcludeMap{
-		m: map[string]bool{
-			"code":           true,
-			"konsole":        true,
-			"xterm":          true,
-			"jetbrains-idea": true,
-		},
-	}
 	engine := &IBusTeniEngine{
 		Engine:     ibus.BaseEngine(conn, objectPath),
 		preediter:  teni.NewEngine(),
 		engineName: engineName,
 		config:     config,
 		propList:   GetPropListByConfig(config),
-		excludeMap: em,
+		exceptMap:  &ExceptMap{engineName: engineName},
 	}
 	engine.preediter.InputMethod = config.InputMethod
-
+	if config.EnableExcept == ibus.PROP_STATE_CHECKED {
+		engine.exceptMap.Enable()
+	}
 	ibus.PublishEngine(conn, objectPath, engine)
 	return objectPath
 }
@@ -118,7 +111,7 @@ func (e *IBusTeniEngine) commitPreedit(lastKey uint32) bool {
 
 func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state uint32) (bool, *dbus.Error) {
 
-	if !e.enable || e.excluded ||
+	if !e.enable || e.excepted ||
 		state&IBUS_RELEASE_MASK != 0 || //Ignore key-up event
 		(state&IBUS_SHIFT_MASK == 0 && (keyVal == IBUS_Shift_L || keyVal == IBUS_Shift_R)) { //Ignore 1 shift key
 		return false, nil
@@ -220,18 +213,13 @@ func (e *IBusTeniEngine) FocusIn() *dbus.Error {
 	e.RegisterProperties(e.propList)
 	e.preediter.Reset()
 
-	if e.excludeMap != nil {
-		ac := x11GetActiveWindowClass()
-		log.Println("x11GetActiveWindowClass", ac)
-		for _, c := range ac {
-			if e.excludeMap.Contains(c) {
-				e.excluded = true
-				return nil
-			}
-		}
+	if e.config.EnableExcept == ibus.PROP_STATE_CHECKED {
+		awc := x11GetActiveWindowClass()
+		e.excepted = e.exceptMap.Contains(awc)
+	} else {
+		e.excepted = false
 	}
 
-	e.excluded = false
 	return nil
 }
 
@@ -313,6 +301,27 @@ func (e *IBusTeniEngine) PropertyActivate(propName string, propState uint32) *db
 				teni.InitWordTrie(DictNewList...)
 			}
 		}
+		return nil
 	}
+
+	if propName == PropKeyExcept {
+		e.config.EnableExcept = propState
+		SaveConfig(e.config, e.engineName)
+		e.propList = GetPropListByConfig(e.config)
+		if propState == ibus.PROP_STATE_CHECKED {
+			e.exceptMap.Enable()
+		} else {
+			e.exceptMap.Disable()
+		}
+		awc := x11GetActiveWindowClass()
+		e.excepted = e.exceptMap.Contains(awc)
+		return nil
+	}
+
+	if propName == PropKeyExceptList {
+		OpenExceptListFile(e.engineName)
+		return nil
+	}
+
 	return nil
 }

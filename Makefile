@@ -58,7 +58,7 @@ install: build
 	mkdir -p $(DESTDIR)/usr/lib/
 	mkdir -p $(DESTDIR)$(ibus_dir)/component/
 
-	cp -R -f icon.png dict $(DESTDIR)$(engine_dir)
+	cp -R -f except.tmpl.txt icon.png wm.bash dict $(DESTDIR)$(engine_dir)
 	cp -f $(ibus_e_name) $(DESTDIR)/usr/lib/
 	cp -f $(engine_name).xml $(DESTDIR)$(ibus_dir)/component/
 

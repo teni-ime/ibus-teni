@@ -11,7 +11,7 @@ do
     if [ "${NEW_ACTIVE_WINDOW}" != "${ACTIVE_WINDOW}" ]
     then
         ACTIVE_WINDOW=${NEW_ACTIVE_WINDOW}
-        xprop -id ${ACTIVE_WINDOW} WM_CLASS WM_NAME _NET_WM_NAME
+        xprop -id ${ACTIVE_WINDOW} WM_CLASS
 
         echo
         echo "Press [CTRL+C] to stop..."

@@ -26,7 +26,7 @@ arch=(any)
 license=(GPL3)
 url="https://github.com/teni-ime/ibus-teni"
 depends=(ibus)
-makedepends=(go)
+makedepends=('go', 'libx11')
 source=($pkgname-$pkgver.tar.gz)
 md5sums=('SKIP')
 
