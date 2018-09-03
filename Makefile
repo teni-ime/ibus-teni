@@ -45,6 +45,23 @@ build:
 	GOPATH=$(CURDIR) go build -buildmode=pie -ldflags "-w -s" -o $(ibus_e_name) ibus-$(engine_name)
 
 
+dict-gen:
+	cd src/dict-gen && dep ensure -update
+	GOPATH=$(CURDIR) go build -o dict_gen_linux dict-gen
+	./dict_gen_linux
+	rm -f dict_gen_linux
+
+
+tdata-gen:
+	go run test-data/test-data-gen.go
+	rm test-data/vietnamese.new.dict.telexw.tdata
+	rm test-data/vietnamese.sp.dict.telex1.tdata
+	rm test-data/vietnamese.sp.dict.telex2.tdata
+	rm test-data/vietnamese.sp.dict.telex3.tdata
+	rm test-data/vietnamese.sp.dict.telexw.tdata
+	rm test-data/vietnamese.std.dict.telexw.tdata
+
+
 clean:
 	rm -f ibus-engine-* *_linux *_cover.html go_test_* go_build_* test *.gz test
 	rm -f debian/files
