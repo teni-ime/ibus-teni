@@ -20,7 +20,7 @@
 engine_name=teni
 ibus_e_name=ibus-engine-$(engine_name)
 pkg_name=ibus-$(engine_name)
-version=1.2.2
+version=1.3.0
 
 engine_dir=/usr/share/$(pkg_name)
 ibus_dir=/usr/share/ibus
@@ -45,6 +45,23 @@ build:
 	GOPATH=$(CURDIR) go build -buildmode=pie -ldflags "-w -s" -o $(ibus_e_name) ibus-$(engine_name)
 
 
+dict-gen:
+	cd src/dict-gen && dep ensure -update
+	GOPATH=$(CURDIR) go build -o dict_gen_linux dict-gen
+	./dict_gen_linux
+	rm -f dict_gen_linux
+
+
+tdata-gen:
+	go run test-data/test-data-gen.go
+	rm test-data/vietnamese.new.dict.telexw.tdata
+	rm test-data/vietnamese.sp.dict.telex1.tdata
+	rm test-data/vietnamese.sp.dict.telex2.tdata
+	rm test-data/vietnamese.sp.dict.telex3.tdata
+	rm test-data/vietnamese.sp.dict.telexw.tdata
+	rm test-data/vietnamese.std.dict.telexw.tdata
+
+
 clean:
 	rm -f ibus-engine-* *_linux *_cover.html go_test_* go_build_* test *.gz test
 	rm -f debian/files
@@ -58,7 +75,7 @@ install: build
 	mkdir -p $(DESTDIR)/usr/lib/
 	mkdir -p $(DESTDIR)$(ibus_dir)/component/
 
-	cp -R -f icon.png dict $(DESTDIR)$(engine_dir)
+	cp -R -f except.tmpl.txt icon.png wm.bash dict $(DESTDIR)$(engine_dir)
 	cp -f $(ibus_e_name) $(DESTDIR)/usr/lib/
 	cp -f $(engine_name).xml $(DESTDIR)$(ibus_dir)/component/
 
@@ -85,7 +102,7 @@ rpm: clean
 
 
 #start ubuntu docker:   docker  run  -v `pwd`:`pwd` -w `pwd` -i -t  ubuntu bash
-#install buildpackages: apt update && apt install dh-make golang -y
+#install buildpackages: apt update && apt install dh-make golang libx11-dev -y
 deb: clean
 	dpkg-buildpackage
 

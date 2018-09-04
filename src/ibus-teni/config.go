@@ -26,11 +26,21 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"os/user"
+	"path/filepath"
+	"strings"
 	"teni"
 )
 
-const configFile = "%s/.config/ibus/ibus-%s.config.json"
+const (
+	configFile           = "%s/.config/ibus/ibus-%s.config.json"
+	exceptListFile       = "%s/.config/ibus/ibus-%s.except.txt"
+	sampleExceptListFile = "except.tmpl.txt"
+
+	varWmBash  = "${WM.BASH}"
+	wmBashFile = "wm.bash"
+)
 
 type ToneType uint8
 
@@ -40,8 +50,9 @@ const (
 )
 
 type Config struct {
-	InputMethod teni.InputMethod
-	ToneType    ToneType
+	InputMethod  teni.InputMethod
+	ToneType     ToneType
+	EnableExcept uint32
 }
 
 func LoadConfig(engineName string) *Config {
@@ -70,9 +81,44 @@ func SaveConfig(c *Config, engineName string) {
 		return
 	}
 
-	err = ioutil.WriteFile(fmt.Sprintf(configFile, u.HomeDir, engineName), data, os.ModePerm)
+	err = ioutil.WriteFile(fmt.Sprintf(configFile, u.HomeDir, engineName), data, 0644)
 	if err != nil {
 		log.Println(err)
 	}
 
+}
+
+func getExceptListFile(engineName string) string {
+	u, err := user.Current()
+	if err != nil {
+		return fmt.Sprintf(exceptListFile, "~", engineName)
+	}
+
+	return fmt.Sprintf(exceptListFile, u.HomeDir, engineName)
+}
+
+func getEngineSubFile(fileName string) string {
+	if _, err := os.Stat(fileName); err == nil {
+		if absPath, err := filepath.Abs(fileName); err == nil {
+			return absPath
+		}
+	}
+
+	return filepath.Join(filepath.Dir(os.Args[0]), fileName)
+}
+
+func OpenExceptListFile(engineName string) {
+	efPath := getExceptListFile(engineName)
+	if _, err := os.Stat(efPath); os.IsNotExist(err) {
+		sampleFile := getEngineSubFile(sampleExceptListFile)
+		sample, _ := ioutil.ReadFile(sampleFile)
+		if len(sample) > 0 {
+			wmBashPath := getEngineSubFile(wmBashFile)
+			strSample := strings.Replace(string(sample), varWmBash, wmBashPath, 1)
+			sample = []byte(strSample)
+		}
+		ioutil.WriteFile(efPath, sample, 0644)
+	}
+
+	exec.Command("xdg-open", efPath).Start()
 }

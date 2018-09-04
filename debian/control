@@ -20,8 +20,8 @@ Source: ibus-teni
 Section: utils
 Priority: extra
 Maintainer: Nguyen Cong Hoang <hoangnc.jp@gmail.com>
-Build-Depends: debhelper, golang
-Standards-Version: 1.2.2
+Build-Depends: debhelper, golang, libx11-dev
+Standards-Version: 1.3.0
 Homepage: https://github.com/teni-ime/ibus-teni
 
 Package: ibus-teni

@@ -22,7 +22,7 @@
 
 %define engine_name  teni
 %define package_name ibus-%{engine_name}
-%define version      1.2.2
+%define version      1.3.0
 
 
 #install directories ----------------------------------------------------------
@@ -41,7 +41,7 @@ License:        GPL-3.0
 Group:          System/Localization
 URL:            https://github.com/teni-ime/ibus-teni
 Packager:       Nguyen Cong Hoang <hoangnc.jp@gmail.com>
-BuildRequires:  go
+BuildRequires:  go, libX11-devel
 Requires:       ibus
 Provides:       locale(ibus:vi)
 Source0:        %{package_name}-%{version}.tar.gz
@@ -81,6 +81,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Sep 4 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.3.0
+- Thêm chức năng "Loại trừ ứng dụng"
+- Cập nhật từ điển (bổ sung ~700 từ)
 * Sun Aug 26 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.2.2
 - Thay đổi xử lý commit: forward tất cả các phím khi commit
 - Sửa lỗi khôi phục phím khi nhấn phím dấu 2 lần

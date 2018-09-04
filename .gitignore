@@ -3,3 +3,4 @@ pkg/
 *_linux
 *.tar.gz
 ibus-engine-*
+src/dict-gen/vendor/
