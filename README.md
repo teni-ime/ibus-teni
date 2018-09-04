@@ -86,4 +86,5 @@ xem các thông báo bản quyền trong từng thư mục con.
 
 Dữ liệu từ điển trong thư mục [dict](dict): xem [dict/LICENSE](dict/LICENSE)
 * [Dữ liệu từ điển tiếng Việt của Ho Ngoc Duc](http://www.informatik.uni-leipzig.de/~duc/Dict/)
+* [Wiktionary tiếng Việt](https://vi.wiktionary.org/wiki/Trang_Chính)
 * [Danh sách viết tắt trong tiếng Việt của QUOC-HUNG NGO](https://sites.google.com/site/ngo2uochung/research/dsviettat-tieng-viet)
