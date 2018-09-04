@@ -28,6 +28,7 @@ Teni là gì ?
   * **Dấu thanh chuẩn**
   * **Dấu thanh kiểu mới**
 * Gõ dấu tự do, đánh dấu thanh bằng từ điển
+* Có danh sách loại trừ ứng dụng không dùng bộ gõ
 
 Cài đặt và cấu hình
 ------------------
@@ -72,6 +73,9 @@ Các phiên bản
 
 Xem trang [release](https://github.com/teni-ime/ibus-teni/releases) để biết chi tiết các phiên bản đã phát hành.
 
+Góp ý và báo lỗi
+--------------
+Xem [hướng dẫn](https://github.com/teni-ime/ibus-teni/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-g%C3%B3p-%C3%BD%2C-b%C3%A1o-l%E1%BB%97i)
 
 Giấy phép
 -------
