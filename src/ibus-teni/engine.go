@@ -43,6 +43,7 @@ type IBusTeniEngine struct {
 	config         *Config
 	propList       *ibus.PropList
 	exceptMap      *ExceptMap
+	newFocusIn     bool
 }
 
 var (
@@ -110,6 +111,11 @@ func (e *IBusTeniEngine) commitPreedit(lastKey uint32) bool {
 }
 
 func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state uint32) (bool, *dbus.Error) {
+	if e.config.EnableExcept == ibus.PROP_STATE_CHECKED && e.newFocusIn {
+		e.newFocusIn = false
+		awc := x11GetActiveWindowClass()
+		e.excepted = e.exceptMap.Contains(awc)
+	}
 
 	if !e.enable || e.excepted ||
 		state&IBUS_RELEASE_MASK != 0 || //Ignore key-up event
@@ -214,10 +220,7 @@ func (e *IBusTeniEngine) FocusIn() *dbus.Error {
 	e.preediter.Reset()
 
 	if e.config.EnableExcept == ibus.PROP_STATE_CHECKED {
-		awc := x11GetActiveWindowClass()
-		e.excepted = e.exceptMap.Contains(awc)
-	} else {
-		e.excepted = false
+		e.newFocusIn = true
 	}
 
 	return nil
