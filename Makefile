@@ -42,7 +42,7 @@ cover:
 
 
 build:
-	GOPATH=$(CURDIR) go build -buildmode=pie -ldflags "-w -s" -o $(ibus_e_name) ibus-$(engine_name)
+	GOPATH=$(CURDIR) go build -ldflags "-w -s" -o $(ibus_e_name) ibus-$(engine_name)
 
 
 dict-gen:
