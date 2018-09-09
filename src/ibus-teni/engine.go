@@ -43,6 +43,7 @@ type IBusTeniEngine struct {
 	config         *Config
 	propList       *ibus.PropList
 	exceptMap      *ExceptMap
+	newFocusIn     bool
 }
 
 var (
@@ -110,6 +111,11 @@ func (e *IBusTeniEngine) commitPreedit(lastKey uint32) bool {
 }
 
 func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state uint32) (bool, *dbus.Error) {
+	if e.config.EnableExcept == ibus.PROP_STATE_CHECKED && e.newFocusIn {
+		e.newFocusIn = false
+		awc := x11GetFocusWindowClass()
+		e.excepted = e.exceptMap.Contains(awc)
+	}
 
 	if !e.enable || e.excepted ||
 		state&IBUS_RELEASE_MASK != 0 || //Ignore key-up event
@@ -212,34 +218,36 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 func (e *IBusTeniEngine) FocusIn() *dbus.Error {
 	e.RegisterProperties(e.propList)
 	e.preediter.Reset()
-
-	if e.config.EnableExcept == ibus.PROP_STATE_CHECKED {
-		awc := x11GetActiveWindowClass()
-		e.excepted = e.exceptMap.Contains(awc)
-	} else {
-		e.excepted = false
-	}
+	e.newFocusIn = true
 
 	return nil
 }
 
 func (e *IBusTeniEngine) FocusOut() *dbus.Error {
 	e.preediter.Reset()
+	e.newFocusIn = true
+
 	return nil
 }
 
 func (e *IBusTeniEngine) Reset() *dbus.Error {
 	e.preediter.Reset()
+	e.newFocusIn = true
+
 	return nil
 }
 
 func (e *IBusTeniEngine) Enable() *dbus.Error {
 	e.preediter.Reset()
+	e.newFocusIn = true
+
 	return nil
 }
 
 func (e *IBusTeniEngine) Disable() *dbus.Error {
 	e.preediter.Reset()
+	e.newFocusIn = true
+
 	return nil
 }
 
@@ -254,7 +262,6 @@ func (e *IBusTeniEngine) SetCursorLocation(x int32, y int32, w int32, h int32) *
 }
 
 func (e *IBusTeniEngine) SetContentType(purpose uint32, hints uint32) *dbus.Error {
-
 	e.enable = purpose == IBUS_INPUT_PURPOSE_FREE_FORM ||
 		purpose == IBUS_INPUT_PURPOSE_ALPHA ||
 		purpose == IBUS_INPUT_PURPOSE_NAME
@@ -313,8 +320,6 @@ func (e *IBusTeniEngine) PropertyActivate(propName string, propState uint32) *db
 		} else {
 			e.exceptMap.Disable()
 		}
-		awc := x11GetActiveWindowClass()
-		e.excepted = e.exceptMap.Contains(awc)
 		return nil
 	}
 

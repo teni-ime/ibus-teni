@@ -6,8 +6,12 @@ package main
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
-inline char* ucharfree(unsigned char* uc) {
+inline void ucharfree(unsigned char* uc) {
 	XFree(uc);
+}
+
+inline void windowfree(Window* w) {
+	XFree(w);
 }
 
 inline char* uchar2char(unsigned char* uc, unsigned long len) {
@@ -22,18 +26,28 @@ inline char* uchar2char(unsigned char* uc, unsigned long len) {
 inline unsigned long uchar2long(unsigned char* uc) {
 	return *(unsigned long*)(uc);
 }
+
+static int ignore_x_error(Display *display, XErrorEvent *error) {
+    return 0;
+}
+
+void setXIgnoreErrorHandler() {
+	XSetErrorHandler(ignore_x_error);
+}
+
 */
 import "C"
-import (
-	"strings"
-)
+import "strings"
 
 const (
 	MaxPropertyLen = 128
 
-	_NET_ACTIVE_WINDOW = "_NET_ACTIVE_WINDOW"
-	WM_CLASS           = "WM_CLASS"
+	WM_CLASS = "WM_CLASS"
 )
+
+func init() {
+	C.setXIgnoreErrorHandler()
+}
 
 func x11GetUCharProperty(display *C.Display, window C.Window, propName string) (*C.uchar, C.ulong) {
 	var actualType C.Atom
@@ -62,44 +76,57 @@ func x11GetStringProperty(display *C.Display, window C.Window, propName string) 
 	return ""
 }
 
-func x11GetLongProperty(display *C.Display, window C.Window, propName string) C.ulong {
-	prop, _ := x11GetUCharProperty(display, window, propName)
-	if prop != nil {
-		defer C.ucharfree(prop)
-		return C.uchar2long(prop)
-	}
-
-	return 0
-}
-
 func x11OpenDisplay() *C.Display {
 	return C.XOpenDisplay(nil)
 }
 
-func x11GetRootWindow(display *C.Display) C.Window {
-	return C.XRootWindow(display, C.XDefaultScreen(display))
+func x11GetInputFocus(display *C.Display) C.Window {
+	var window C.Window
+	var revertTo C.int
+	C.XGetInputFocus(display, &window, &revertTo)
+
+	return window
+}
+
+func x11GetParentWindow(display *C.Display, w C.Window) (rootWindow, parentWindow C.Window) {
+	var childrenWindows *C.Window
+	var nChild C.uint
+	C.XQueryTree(display, w, &rootWindow, &parentWindow, &childrenWindows, &nChild)
+	C.windowfree(childrenWindows)
+
+	return
 }
 
 func x11CloseDisplay(d *C.Display) {
 	C.XCloseDisplay(d)
 }
 
-func x11GetActiveWindowClass() []string {
-	defer func() {
-		recover()
-	}()
+func x11GetFocusWindowClass() []string {
+
 	display := x11OpenDisplay()
 	if display != nil {
-		defer x11CloseDisplay(display)
 
-		rootWindow := x11GetRootWindow(display)
-		if rootWindow != 0 {
-			activeWindow := x11GetLongProperty(display, rootWindow, _NET_ACTIVE_WINDOW)
-			if activeWindow != 0 {
-				strClass := x11GetStringProperty(display, C.Window(activeWindow), WM_CLASS)
-				return strings.Split(strClass, "\n")
+		w := x11GetInputFocus(display)
+		strClass := ""
+		for {
+			s := x11GetStringProperty(display, w, WM_CLASS)
+
+			rootWindow, parentWindow := x11GetParentWindow(display, w)
+
+			if rootWindow == parentWindow {
+				break
 			}
+
+			if len(s) > 0 {
+				strClass += s + "\n"
+			}
+
+			w = parentWindow
 		}
+
+		x11CloseDisplay(display)
+
+		return strings.Split(strClass, "\n")
 	}
 
 	return nil
