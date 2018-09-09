@@ -1,10 +1,17 @@
+ibus-teni (1.3.1-1) stable; urgency=low
+
+  * Release 1.3.1
+    - Sửa lỗi chức năng "Loại trừ ứng dụng"
+
+ -- Nguyen Cong Hoang <hoangnc.jp@gmail.com>  Sun, 9 Sep 2018 00:00:00 +0900
+
 ibus-teni (1.3.0-1) stable; urgency=low
 
   * Release 1.3.0
     - Thêm chức năng "Loại trừ ứng dụng"
     - Cập nhật từ điển (bổ sung ~700 từ)
 
- -- Nguyen Cong Hoang <hoangnc.jp@gmail.com>  Sun, 26 Aug 2018 00:00:00 +0900
+ -- Nguyen Cong Hoang <hoangnc.jp@gmail.com>  Tue, 4 Sep 2018 00:00:00 +0900
 
 ibus-teni (1.2.2-1) stable; urgency=low
 

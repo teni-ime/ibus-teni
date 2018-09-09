@@ -22,7 +22,7 @@
 
 %define engine_name  teni
 %define package_name ibus-%{engine_name}
-%define version      1.3.0
+%define version      1.3.1
 
 
 #install directories ----------------------------------------------------------
@@ -81,6 +81,8 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Sun Sep 9 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.3.1
+- Sửa lỗi chức năng "Loại trừ ứng dụng"
 * Tue Sep 4 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.3.0
 - Thêm chức năng "Loại trừ ứng dụng"
 - Cập nhật từ điển (bổ sung ~700 từ)
