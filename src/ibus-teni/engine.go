@@ -24,7 +24,9 @@ import (
 	"fmt"
 	"github.com/godbus/dbus"
 	"github.com/sarim/goibus/ibus"
+	"log"
 	"os/exec"
+	"sync"
 	"teni"
 	"time"
 )
@@ -34,6 +36,7 @@ const (
 )
 
 type IBusTeniEngine struct {
+	sync.Mutex
 	ibus.Engine
 	preediter      *teni.Engine
 	enable         bool
@@ -111,6 +114,9 @@ func (e *IBusTeniEngine) commitPreedit(lastKey uint32) bool {
 }
 
 func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state uint32) (bool, *dbus.Error) {
+	e.Lock()
+	defer e.Unlock()
+
 	if e.config.EnableExcept == ibus.PROP_STATE_CHECKED && e.newFocusIn {
 		e.newFocusIn = false
 		awc := x11GetFocusWindowClass()
@@ -216,14 +222,22 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 }
 
 func (e *IBusTeniEngine) FocusIn() *dbus.Error {
+	e.Lock()
+	defer e.Unlock()
+
 	e.RegisterProperties(e.propList)
 	e.preediter.Reset()
 	e.newFocusIn = true
+
+	log.Println(x11GetFocusWindowClass())
 
 	return nil
 }
 
 func (e *IBusTeniEngine) FocusOut() *dbus.Error {
+	e.Lock()
+	defer e.Unlock()
+
 	e.preediter.Reset()
 	e.newFocusIn = true
 
