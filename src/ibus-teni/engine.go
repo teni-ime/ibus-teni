@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"github.com/godbus/dbus"
 	"github.com/sarim/goibus/ibus"
-	"log"
 	"os/exec"
 	"sync"
 	"teni"
@@ -46,7 +45,6 @@ type IBusTeniEngine struct {
 	config         *Config
 	propList       *ibus.PropList
 	exceptMap      *ExceptMap
-	newFocusIn     bool
 }
 
 var (
@@ -116,12 +114,6 @@ func (e *IBusTeniEngine) commitPreedit(lastKey uint32) bool {
 func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state uint32) (bool, *dbus.Error) {
 	e.Lock()
 	defer e.Unlock()
-
-	if e.config.EnableExcept == ibus.PROP_STATE_CHECKED && e.newFocusIn {
-		e.newFocusIn = false
-		awc := x11GetFocusWindowClass()
-		e.excepted = e.exceptMap.Contains(awc)
-	}
 
 	if !e.enable || e.excepted ||
 		state&IBUS_RELEASE_MASK != 0 || //Ignore key-up event
@@ -227,9 +219,11 @@ func (e *IBusTeniEngine) FocusIn() *dbus.Error {
 
 	e.RegisterProperties(e.propList)
 	e.preediter.Reset()
-	e.newFocusIn = true
 
-	log.Println(x11GetFocusWindowClass())
+	if e.config.EnableExcept == ibus.PROP_STATE_CHECKED {
+		awc := x11GetFocusWindowClass()
+		e.excepted = e.exceptMap.Contains(awc)
+	}
 
 	return nil
 }
@@ -239,28 +233,23 @@ func (e *IBusTeniEngine) FocusOut() *dbus.Error {
 	defer e.Unlock()
 
 	e.preediter.Reset()
-	e.newFocusIn = true
 
 	return nil
 }
 
 func (e *IBusTeniEngine) Reset() *dbus.Error {
 	e.preediter.Reset()
-	e.newFocusIn = true
 
 	return nil
 }
 
 func (e *IBusTeniEngine) Enable() *dbus.Error {
 	e.preediter.Reset()
-	e.newFocusIn = true
-
 	return nil
 }
 
 func (e *IBusTeniEngine) Disable() *dbus.Error {
 	e.preediter.Reset()
-	e.newFocusIn = true
 
 	return nil
 }
