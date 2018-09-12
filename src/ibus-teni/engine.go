@@ -25,6 +25,7 @@ import (
 	"github.com/godbus/dbus"
 	"github.com/sarim/goibus/ibus"
 	"os/exec"
+	"runtime/debug"
 	"sync"
 	"teni"
 	"time"
@@ -76,6 +77,7 @@ func IBusTeniEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
 		engine.exceptMap.Enable()
 	}
 	ibus.PublishEngine(conn, objectPath, engine)
+
 	return objectPath
 }
 
@@ -215,15 +217,14 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 
 func (e *IBusTeniEngine) FocusIn() *dbus.Error {
 	e.Lock()
-	defer e.Unlock()
-
-	e.RegisterProperties(e.propList)
-	e.preediter.Reset()
-
 	if e.config.EnableExcept == ibus.PROP_STATE_CHECKED {
 		awc := x11GetFocusWindowClass()
 		e.excepted = e.exceptMap.Contains(awc)
 	}
+	e.preediter.Reset()
+	e.Unlock()
+
+	e.RegisterProperties(e.propList)
 
 	return nil
 }
@@ -274,6 +275,8 @@ func (e *IBusTeniEngine) SetContentType(purpose uint32, hints uint32) *dbus.Erro
 
 //@method(in_signature="su")
 func (e *IBusTeniEngine) PropertyActivate(propName string, propState uint32) *dbus.Error {
+	debug.FreeOSMemory()
+
 	if propName == PropKeyAbout {
 		exec.Command("xdg-open", HomePage).Start()
 		return nil
