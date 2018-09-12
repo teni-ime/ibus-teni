@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"github.com/godbus/dbus"
 	"github.com/sarim/goibus/ibus"
+	"log"
 	"os/exec"
 	"runtime/debug"
 	"sync"
@@ -81,39 +82,60 @@ func IBusTeniEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
 	return objectPath
 }
 
-func (e *IBusTeniEngine) updatePreedit() {
-	e.UpdatePreeditTextWithMode(ibus.NewText(e.preediter.GetResultStr()), e.preediter.ResultLen(), true, ibus.IBUS_ENGINE_PREEDIT_COMMIT)
+func (e *IBusTeniEngine) SendBackSpace(state uint32) {
+	log.Println("SendBackSpace")
+	e.ForwardKeyEvent(IBUS_BackSpace, 14, state)
+	e.ForwardKeyEvent(IBUS_BackSpace, 14, state|IBUS_RELEASE_MASK)
+}
+
+func (e *IBusTeniEngine) SendKey(r rune, state uint32) {
+	log.Println("Send key", string(r))
+	keyVal := uint32(r) | 0x01000000
+	e.ForwardKeyEvent(keyVal, 0, state)
+	e.ForwardKeyEvent(keyVal, 0, state|IBUS_RELEASE_MASK)
+}
+
+func (e *IBusTeniEngine) updatePreedit(newRunes, oldRunes []rune, state uint32) {
+
+	oldLen := len(oldRunes)
+	newLen := len(newRunes)
+	minLen := oldLen
+	if newLen < minLen {
+		minLen = newLen
+	}
+
+	sameTo := -1
+	for i := 0; i < minLen; i++ {
+		if oldRunes[i] == newRunes[i] {
+			sameTo = i
+		} else {
+			break
+		}
+	}
+	diffFrom := sameTo + 1
+
+	log.Println(string(oldRunes))
+	log.Println(string(newRunes))
+	log.Println(diffFrom)
+
+	for i := diffFrom; i < oldLen; i++ {
+		e.SendBackSpace(state)
+	}
+	for i := diffFrom; i < newLen; i++ {
+		e.SendKey(newRunes[i], state)
+	}
 }
 
 func (e *IBusTeniEngine) commitPreedit(lastKey uint32) bool {
 	var keyAppended = false
-	var commitStr string
-	if lastKey == IBUS_Escape {
-		commitStr = e.preediter.GetRawStr()
-	} else {
-		commitStr = e.preediter.GetCommitResultStr()
-	}
 	e.preediter.Reset()
-
-	//Convert num-pad key to normal number
-	if (lastKey >= IBUS_KP_0 && lastKey <= IBUS_KP_9) ||
-		(lastKey >= IBUS_KP_Multiply && lastKey <= IBUS_KP_Divide) {
-		lastKey = lastKey - DiffNumpadKeypad
-	}
-
-	if lastKey >= 0x20 && lastKey <= 0xFF {
-		//append printable keys
-		commitStr += string(lastKey)
-		keyAppended = true
-	}
-
-	e.HidePreeditText()
-	e.CommitText(ibus.NewText(commitStr))
 
 	return keyAppended
 }
 
 func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state uint32) (bool, *dbus.Error) {
+	log.Println(keyVal, keyCode, state)
+
 	e.Lock()
 	defer e.Unlock()
 
@@ -140,8 +162,10 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 
 	if keyVal == IBUS_BackSpace {
 		if e.preediter.RawKeyLen() > 0 {
+			oldRunes := e.preediter.GetResult()
 			e.preediter.Backspace()
-			e.updatePreedit()
+			newRunes := e.preediter.GetResult()
+			e.updatePreedit(newRunes, oldRunes, state)
 			return true, nil
 		}
 
@@ -194,7 +218,9 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 		}
 		keyRune := rune(keyVal)
 		e.preediter.AddKey(keyRune)
-		e.updatePreedit()
+		newRunes := e.preediter.GetResult()
+		oldRunes := e.preediter.GetPrevResult()
+		e.updatePreedit(newRunes, oldRunes, state)
 		return true, nil
 	} else {
 		if e.preediter.ResultLen() > 0 {
@@ -221,7 +247,6 @@ func (e *IBusTeniEngine) FocusIn() *dbus.Error {
 		awc := x11GetFocusWindowClass()
 		e.excepted = e.exceptMap.Contains(awc)
 	}
-	e.preediter.Reset()
 	e.Unlock()
 
 	e.RegisterProperties(e.propList)
@@ -230,28 +255,22 @@ func (e *IBusTeniEngine) FocusIn() *dbus.Error {
 }
 
 func (e *IBusTeniEngine) FocusOut() *dbus.Error {
-	e.Lock()
-	defer e.Unlock()
-
 	e.preediter.Reset()
 
 	return nil
 }
 
 func (e *IBusTeniEngine) Reset() *dbus.Error {
-	e.preediter.Reset()
+	//e.preediter.Reset()
 
 	return nil
 }
 
 func (e *IBusTeniEngine) Enable() *dbus.Error {
-	e.preediter.Reset()
 	return nil
 }
 
 func (e *IBusTeniEngine) Disable() *dbus.Error {
-	e.preediter.Reset()
-
 	return nil
 }
 

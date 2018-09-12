@@ -21,6 +21,7 @@
 package teni
 
 import (
+	"log"
 	"sort"
 	"strings"
 )
@@ -83,6 +84,8 @@ func (pc *Engine) ResultLen() uint32 {
 }
 
 func (pc *Engine) Reset() {
+	log.Println("Reset")
+	//log.Println("Reset", string(debug.Stack()))
 	if len(pc.rawKeys) > 0 {
 		pc.rawKeys = pc.rawKeys[:0]
 	}
@@ -95,6 +98,14 @@ func (pc *Engine) Reset() {
 func (pc *Engine) GetResult() []rune {
 	if l := len(pc.resultStack); l > 0 {
 		return pc.resultStack[l-1]
+	}
+
+	return nil
+}
+
+func (pc *Engine) GetPrevResult() []rune {
+	if l := len(pc.resultStack); l > 1 {
+		return pc.resultStack[l-2]
 	}
 
 	return nil

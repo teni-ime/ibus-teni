@@ -73,8 +73,7 @@ const (
 )
 
 // ibuskeysyms-compat
-// http://ibus.github.io/docs/ibus-1.5/ibus-ibuskeysyms-compat.htm
-
+// http://ibus.github.io/docs/ibus-1.5/ibus-ibuskeysyms-compat.html
 const (
 	IBUS_BackSpace   = 0xff08
 	IBUS_Return      = 0xff0d
