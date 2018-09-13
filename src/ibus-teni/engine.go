@@ -118,6 +118,11 @@ func (e *IBusTeniEngine) updatePreedit(newRunes, oldRunes []rune, state uint32) 
 	log.Println(string(newRunes))
 	log.Println(diffFrom)
 
+	if diffFrom < newLen && diffFrom < oldLen {
+		e.SendKey(0x200D, state) //(ZWJ)
+		e.SendBackSpace(state)
+	}
+
 	for i := diffFrom; i < oldLen; i++ {
 		e.SendBackSpace(state)
 	}
