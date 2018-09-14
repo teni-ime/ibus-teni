@@ -47,6 +47,7 @@ type IBusTeniEngine struct {
 	config         *Config
 	propList       *ibus.PropList
 	exceptMap      *ExceptMap
+	display        *CDisplay
 }
 
 var (
@@ -85,14 +86,18 @@ func IBusTeniEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
 func (e *IBusTeniEngine) SendBackSpace(state uint32) {
 	log.Println("SendBackSpace")
 	e.ForwardKeyEvent(IBUS_BackSpace, 14, state)
-	e.ForwardKeyEvent(IBUS_BackSpace, 14, state|IBUS_RELEASE_MASK)
+	//e.ForwardKeyEvent(IBUS_BackSpace, 14, state|IBUS_RELEASE_MASK)
 }
 
 func (e *IBusTeniEngine) SendKey(r rune, state uint32) {
 	log.Println("Send key", string(r))
-	keyVal := uint32(r) | 0x01000000
-	e.ForwardKeyEvent(keyVal, 0, state)
-	e.ForwardKeyEvent(keyVal, 0, state|IBUS_RELEASE_MASK)
+	keyVal := ibusUnicodeToKeyval(r)
+
+	keyCode := x11KeyvalToKeyCode(e.display, uint32(r)) - 8
+	stateUp := state | IBUS_RELEASE_MASK
+	log.Printf("r=[%c][%d],keyval=[%d],keycode=[%d],stateUp=[%d]", r, r, keyVal, keyCode, stateUp)
+	e.ForwardKeyEvent(keyVal, keyCode, state)
+	//e.ForwardKeyEvent(keyVal, keyCode, stateUp)
 }
 
 func (e *IBusTeniEngine) updatePreedit(newRunes, oldRunes []rune, state uint32) {
@@ -119,7 +124,7 @@ func (e *IBusTeniEngine) updatePreedit(newRunes, oldRunes []rune, state uint32) 
 	log.Println(diffFrom)
 
 	if diffFrom < newLen && diffFrom < oldLen {
-		e.SendKey(0x200D, state) //(ZWJ)
+		e.SendKey('　', state) //https://en.wikipedia.org/wiki/Whitespace_character
 		e.SendBackSpace(state)
 	}
 
@@ -248,8 +253,9 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 
 func (e *IBusTeniEngine) FocusIn() *dbus.Error {
 	e.Lock()
-	if e.config.EnableExcept == ibus.PROP_STATE_CHECKED {
-		awc := x11GetFocusWindowClass()
+	if e.config.EnableExcept == ibus.PROP_STATE_CHECKED && e.display != nil {
+		awc := x11GetFocusWindowClass(e.display)
+		log.Println(awc)
 		e.excepted = e.exceptMap.Contains(awc)
 	}
 	e.Unlock()
@@ -272,10 +278,12 @@ func (e *IBusTeniEngine) Reset() *dbus.Error {
 }
 
 func (e *IBusTeniEngine) Enable() *dbus.Error {
+	e.display = x11OpenDisplay()
 	return nil
 }
 
 func (e *IBusTeniEngine) Disable() *dbus.Error {
+	x11CloseDisplay(e.display)
 	return nil
 }
 
