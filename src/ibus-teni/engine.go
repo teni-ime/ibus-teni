@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"github.com/godbus/dbus"
 	"github.com/sarim/goibus/ibus"
+	"log"
 	"os/exec"
 	"runtime/debug"
 	"sync"
@@ -46,6 +47,7 @@ type IBusTeniEngine struct {
 	config         *Config
 	propList       *ibus.PropList
 	exceptMap      *ExceptMap
+	display        CDisplay
 }
 
 var (
@@ -217,12 +219,16 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 
 func (e *IBusTeniEngine) FocusIn() *dbus.Error {
 	e.Lock()
+	defer e.Unlock()
+
+	if e.display == nil {
+		e.display = x11OpenDisplay()
+	}
 	if e.config.EnableExcept == ibus.PROP_STATE_CHECKED {
-		awc := x11GetFocusWindowClass()
+		awc := x11GetFocusWindowClass(e.display)
+		log.Println(awc)
 		e.excepted = e.exceptMap.Contains(awc)
 	}
-	e.preediter.Reset()
-	e.Unlock()
 
 	e.RegisterProperties(e.propList)
 
@@ -239,23 +245,34 @@ func (e *IBusTeniEngine) FocusOut() *dbus.Error {
 }
 
 func (e *IBusTeniEngine) Reset() *dbus.Error {
+	e.Lock()
+	defer e.Unlock()
+
 	e.preediter.Reset()
 
 	return nil
 }
 
 func (e *IBusTeniEngine) Enable() *dbus.Error {
-	e.preediter.Reset()
 	return nil
 }
 
 func (e *IBusTeniEngine) Disable() *dbus.Error {
-	e.preediter.Reset()
+	e.Lock()
+	defer e.Unlock()
+
+	if e.display != nil {
+		x11CloseDisplay(e.display)
+		e.display = nil
+	}
 
 	return nil
 }
 
 func (e *IBusTeniEngine) SetCapabilities(cap uint32) *dbus.Error {
+	e.Lock()
+	defer e.Unlock()
+
 	e.enable = cap&IBUS_CAP_PREEDIT_TEXT != 0
 	e.capSurrounding = cap&IBUS_CAP_SURROUNDING_TEXT != 0
 	return nil
@@ -266,6 +283,9 @@ func (e *IBusTeniEngine) SetCursorLocation(x int32, y int32, w int32, h int32) *
 }
 
 func (e *IBusTeniEngine) SetContentType(purpose uint32, hints uint32) *dbus.Error {
+	e.Lock()
+	defer e.Unlock()
+
 	e.enable = purpose == IBUS_INPUT_PURPOSE_FREE_FORM ||
 		purpose == IBUS_INPUT_PURPOSE_ALPHA ||
 		purpose == IBUS_INPUT_PURPOSE_NAME

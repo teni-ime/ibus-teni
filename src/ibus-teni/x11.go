@@ -37,13 +37,20 @@ void setXIgnoreErrorHandler() {
 
 */
 import "C"
-import "strings"
+import (
+	"strings"
+)
 
 const (
 	MaxPropertyLen = 128
+	MaxCacheWM     = 16
 
 	WM_CLASS = "WM_CLASS"
 )
+
+type CDisplay *C.Display
+
+var cacheWM = NewCacheWM(MaxCacheWM)
 
 func init() {
 	C.setXIgnoreErrorHandler()
@@ -101,13 +108,15 @@ func x11CloseDisplay(d *C.Display) {
 	C.XCloseDisplay(d)
 }
 
-func x11GetFocusWindowClass() []string {
-
-	display := x11OpenDisplay()
+func x11GetFocusWindowClass(display *C.Display) []string {
 	if display != nil {
 
-		w := x11GetInputFocus(display)
+		focusWindow := x11GetInputFocus(display)
+		if v, hit := cacheWM.Get(uint32(focusWindow)); hit {
+			return v
+		}
 		strClass := ""
+		w := focusWindow
 		for {
 			s := x11GetStringProperty(display, w, WM_CLASS)
 
@@ -124,9 +133,12 @@ func x11GetFocusWindowClass() []string {
 			w = parentWindow
 		}
 
-		x11CloseDisplay(display)
+		v := strings.Split(strClass, "\n")
+		if len(v) > 0 {
+			cacheWM.Set(uint32(focusWindow), v)
+		}
 
-		return strings.Split(strClass, "\n")
+		return v
 	}
 
 	return nil
