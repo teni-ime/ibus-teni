@@ -279,9 +279,6 @@ func (e *IBusTeniEngine) SetCursorLocation(x int32, y int32, w int32, h int32) *
 }
 
 func (e *IBusTeniEngine) SetContentType(purpose uint32, hints uint32) *dbus.Error {
-	e.Lock()
-	defer e.Unlock()
-
 	return nil
 }
 
