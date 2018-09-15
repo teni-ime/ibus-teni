@@ -40,7 +40,6 @@ type IBusTeniEngine struct {
 	sync.Mutex
 	ibus.Engine
 	preediter      *teni.Engine
-	enable         bool
 	excepted       bool
 	capSurrounding bool
 	engineName     string
@@ -119,7 +118,7 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 	e.Lock()
 	defer e.Unlock()
 
-	if !e.enable || e.excepted ||
+	if e.excepted ||
 		state&IBUS_RELEASE_MASK != 0 || //Ignore key-up event
 		(state&IBUS_SHIFT_MASK == 0 && (keyVal == IBUS_Shift_L || keyVal == IBUS_Shift_R)) { //Ignore 1 shift key
 		return false, nil
@@ -273,7 +272,6 @@ func (e *IBusTeniEngine) SetCapabilities(cap uint32) *dbus.Error {
 	e.Lock()
 	defer e.Unlock()
 
-	e.enable = cap&IBUS_CAP_PREEDIT_TEXT != 0
 	e.capSurrounding = cap&IBUS_CAP_SURROUNDING_TEXT != 0
 	return nil
 }
@@ -285,10 +283,6 @@ func (e *IBusTeniEngine) SetCursorLocation(x int32, y int32, w int32, h int32) *
 func (e *IBusTeniEngine) SetContentType(purpose uint32, hints uint32) *dbus.Error {
 	e.Lock()
 	defer e.Unlock()
-
-	e.enable = purpose == IBUS_INPUT_PURPOSE_FREE_FORM ||
-		purpose == IBUS_INPUT_PURPOSE_ALPHA ||
-		purpose == IBUS_INPUT_PURPOSE_NAME
 
 	return nil
 }
