@@ -24,8 +24,8 @@ func (c *CacheWM) Get(window uint32) ([]string, bool) {
 	v, ok := c.values[window]
 	if ok {
 		lenKeyList := len(c.keyList)
-		for i, v := range c.keyList {
-			if v == window {
+		for i := lenKeyList - 1; i >= 0; i-- {
+			if c.keyList[i] == window {
 				for j := i + 1; j < lenKeyList; j++ {
 					c.keyList[j-1] = c.keyList[j]
 				}
