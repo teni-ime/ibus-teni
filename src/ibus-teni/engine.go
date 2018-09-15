@@ -40,14 +40,13 @@ type IBusTeniEngine struct {
 	sync.Mutex
 	ibus.Engine
 	preediter      *teni.Engine
-	enable         bool
 	excepted       bool
 	capSurrounding bool
 	engineName     string
 	config         *Config
 	propList       *ibus.PropList
 	exceptMap      *ExceptMap
-	display        *CDisplay
+	display        CDisplay
 }
 
 var (
@@ -137,10 +136,8 @@ func (e *IBusTeniEngine) updatePreedit(newRunes, oldRunes []rune, state uint32) 
 }
 
 func (e *IBusTeniEngine) commitPreedit(lastKey uint32) bool {
-	var keyAppended = false
 	e.preediter.Reset()
-
-	return keyAppended
+	return false
 }
 
 func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state uint32) (bool, *dbus.Error) {
@@ -149,7 +146,7 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 	e.Lock()
 	defer e.Unlock()
 
-	if !e.enable || e.excepted ||
+	if e.excepted ||
 		state&IBUS_RELEASE_MASK != 0 || //Ignore key-up event
 		(state&IBUS_SHIFT_MASK == 0 && (keyVal == IBUS_Shift_L || keyVal == IBUS_Shift_R)) { //Ignore 1 shift key
 		return false, nil
@@ -258,6 +255,7 @@ func (e *IBusTeniEngine) FocusIn() *dbus.Error {
 		log.Println(awc)
 		e.excepted = e.exceptMap.Contains(awc)
 	}
+	e.preediter.Reset()
 	e.Unlock()
 
 	e.RegisterProperties(e.propList)
@@ -266,6 +264,9 @@ func (e *IBusTeniEngine) FocusIn() *dbus.Error {
 }
 
 func (e *IBusTeniEngine) FocusOut() *dbus.Error {
+	e.Lock()
+	defer e.Unlock()
+
 	e.preediter.Reset()
 
 	return nil
@@ -278,17 +279,26 @@ func (e *IBusTeniEngine) Reset() *dbus.Error {
 }
 
 func (e *IBusTeniEngine) Enable() *dbus.Error {
-	e.display = x11OpenDisplay()
+	e.preediter.Reset()
 	return nil
 }
 
 func (e *IBusTeniEngine) Disable() *dbus.Error {
-	x11CloseDisplay(e.display)
+	e.Lock()
+	defer e.Unlock()
+
+	if e.display != nil {
+		x11CloseDisplay(e.display)
+		e.display = nil
+	}
+
 	return nil
 }
 
 func (e *IBusTeniEngine) SetCapabilities(cap uint32) *dbus.Error {
-	e.enable = cap&IBUS_CAP_PREEDIT_TEXT != 0
+	e.Lock()
+	defer e.Unlock()
+
 	e.capSurrounding = cap&IBUS_CAP_SURROUNDING_TEXT != 0
 	return nil
 }
@@ -298,9 +308,8 @@ func (e *IBusTeniEngine) SetCursorLocation(x int32, y int32, w int32, h int32) *
 }
 
 func (e *IBusTeniEngine) SetContentType(purpose uint32, hints uint32) *dbus.Error {
-	e.enable = purpose == IBUS_INPUT_PURPOSE_FREE_FORM ||
-		purpose == IBUS_INPUT_PURPOSE_ALPHA ||
-		purpose == IBUS_INPUT_PURPOSE_NAME
+	e.Lock()
+	defer e.Unlock()
 
 	return nil
 }

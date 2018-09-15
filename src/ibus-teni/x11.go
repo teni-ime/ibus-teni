@@ -44,11 +44,14 @@ import "strings"
 
 const (
 	MaxPropertyLen = 128
+	MaxCacheWM     = 16
 
 	WM_CLASS = "WM_CLASS"
 )
 
-type CDisplay C.Display
+type CDisplay *C.Display
+
+var cacheWM = NewCacheWM(MaxCacheWM)
 
 func init() {
 	C.setXIgnoreErrorHandler()
@@ -81,58 +84,61 @@ func x11GetStringProperty(display *C.Display, window C.Window, propName string) 
 	return ""
 }
 
-func x11OpenDisplay() *CDisplay {
-	return (*CDisplay)(C.XOpenDisplay(nil))
+func x11OpenDisplay() *C.Display {
+	return C.XOpenDisplay(nil)
 }
 
-func x11GetInputFocus(display *CDisplay) C.Window {
+func x11GetInputFocus(display *C.Display) C.Window {
 	var window C.Window
 	var revertTo C.int
-	C.XGetInputFocus((*C.Display)(display), &window, &revertTo)
+	C.XGetInputFocus(display, &window, &revertTo)
 
 	return window
 }
 
-func x11GetParentWindow(display *CDisplay, w C.Window) (rootWindow, parentWindow C.Window) {
+func x11GetParentWindow(display *C.Display, w C.Window) (rootWindow, parentWindow C.Window) {
 	var childrenWindows *C.Window
 	var nChild C.uint
-	C.XQueryTree((*C.Display)(display), w, &rootWindow, &parentWindow, &childrenWindows, &nChild)
+	C.XQueryTree(display, w, &rootWindow, &parentWindow, &childrenWindows, &nChild)
 	C.windowfree(childrenWindows)
 
 	return
 }
 
-func x11CloseDisplay(d *CDisplay) {
-	C.XCloseDisplay((*C.Display)(d))
+func x11CloseDisplay(d *C.Display) {
+	C.XCloseDisplay(d)
 }
 
-func x11GetFocusWindowClass(display *CDisplay) []string {
+func x11GetFocusWindowClass(display *C.Display) []string {
 
-	w := x11GetInputFocus(display)
-	strClass := ""
-	for {
-		s := x11GetStringProperty((*C.Display)(display), w, WM_CLASS)
+	if display != nil {
 
-		rootWindow, parentWindow := x11GetParentWindow(display, w)
+		w := x11GetInputFocus(display)
+		strClass := ""
+		for {
+			s := x11GetStringProperty(display, w, WM_CLASS)
+			if len(s) > 0 {
+				strClass += s + "\n"
+			}
 
-		if rootWindow == parentWindow {
-			break
+			rootWindow, parentWindow := x11GetParentWindow(display, w)
+
+			if rootWindow == parentWindow {
+				break
+			}
+
+			w = parentWindow
 		}
 
-		if len(s) > 0 {
-			strClass += s + "\n"
-		}
-
-		w = parentWindow
+		return strings.Split(strClass, "\n")
 	}
-
-	return strings.Split(strClass, "\n")
+	return nil
 }
 
 func x11KeyvalToKeyCode(display *CDisplay, keyval uint32) uint32 {
 	return uint32(C.XKeysymToKeycode((*C.Display)(display), (C.KeySym)(keyval)))
 }
 
-func ibusUnicodeToKeyval(r rune) uint32  {
+func ibusUnicodeToKeyval(r rune) uint32 {
 	return uint32(C.ibus_unicode_to_keyval((C.gunichar)(r)))
 }

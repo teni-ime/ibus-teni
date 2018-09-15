@@ -19,7 +19,7 @@
 
 # Maintainer: Nguyen Cong Hoang <hoangnc.jp@gmail.com>
 pkgname=ibus-teni
-pkgver=1.3.1
+pkgver=1.3.2
 pkgrel=1
 pkgdesc='A Vietnamese IME for IBus'
 arch=(any)
