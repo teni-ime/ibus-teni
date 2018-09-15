@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"github.com/godbus/dbus"
 	"github.com/sarim/goibus/ibus"
-	"log"
 	"os/exec"
 	"runtime/debug"
 	"sync"
@@ -225,7 +224,6 @@ func (e *IBusTeniEngine) FocusIn() *dbus.Error {
 	}
 	if e.config.EnableExcept == ibus.PROP_STATE_CHECKED {
 		awc := x11GetFocusWindowClass(e.display)
-		log.Println(awc)
 		e.excepted = e.exceptMap.Contains(awc)
 	}
 
