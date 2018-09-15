@@ -25,6 +25,8 @@ import (
 	"github.com/godbus/dbus"
 	"github.com/sarim/goibus/ibus"
 	"os/exec"
+	"runtime/debug"
+	"sync"
 	"teni"
 	"time"
 )
@@ -34,16 +36,16 @@ const (
 )
 
 type IBusTeniEngine struct {
+	sync.Mutex
 	ibus.Engine
 	preediter      *teni.Engine
-	enable         bool
 	excepted       bool
 	capSurrounding bool
 	engineName     string
 	config         *Config
 	propList       *ibus.PropList
 	exceptMap      *ExceptMap
-	newFocusIn     bool
+	display        CDisplay
 }
 
 var (
@@ -75,6 +77,7 @@ func IBusTeniEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
 		engine.exceptMap.Enable()
 	}
 	ibus.PublishEngine(conn, objectPath, engine)
+
 	return objectPath
 }
 
@@ -111,13 +114,10 @@ func (e *IBusTeniEngine) commitPreedit(lastKey uint32) bool {
 }
 
 func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state uint32) (bool, *dbus.Error) {
-	if e.config.EnableExcept == ibus.PROP_STATE_CHECKED && e.newFocusIn {
-		e.newFocusIn = false
-		awc := x11GetFocusWindowClass()
-		e.excepted = e.exceptMap.Contains(awc)
-	}
+	e.Lock()
+	defer e.Unlock()
 
-	if !e.enable || e.excepted ||
+	if e.excepted ||
 		state&IBUS_RELEASE_MASK != 0 || //Ignore key-up event
 		(state&IBUS_SHIFT_MASK == 0 && (keyVal == IBUS_Shift_L || keyVal == IBUS_Shift_R)) { //Ignore 1 shift key
 		return false, nil
@@ -216,43 +216,60 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 }
 
 func (e *IBusTeniEngine) FocusIn() *dbus.Error {
+	e.Lock()
+	defer e.Unlock()
+
+	if e.display == nil {
+		e.display = x11OpenDisplay()
+	}
+	if e.config.EnableExcept == ibus.PROP_STATE_CHECKED {
+		awc := x11GetFocusWindowClass(e.display)
+		e.excepted = e.exceptMap.Contains(awc)
+	}
+
 	e.RegisterProperties(e.propList)
-	e.preediter.Reset()
-	e.newFocusIn = true
 
 	return nil
 }
 
 func (e *IBusTeniEngine) FocusOut() *dbus.Error {
+	e.Lock()
+	defer e.Unlock()
+
 	e.preediter.Reset()
-	e.newFocusIn = true
 
 	return nil
 }
 
 func (e *IBusTeniEngine) Reset() *dbus.Error {
+	e.Lock()
+	defer e.Unlock()
+
 	e.preediter.Reset()
-	e.newFocusIn = true
 
 	return nil
 }
 
 func (e *IBusTeniEngine) Enable() *dbus.Error {
-	e.preediter.Reset()
-	e.newFocusIn = true
-
 	return nil
 }
 
 func (e *IBusTeniEngine) Disable() *dbus.Error {
-	e.preediter.Reset()
-	e.newFocusIn = true
+	e.Lock()
+	defer e.Unlock()
+
+	if e.display != nil {
+		x11CloseDisplay(e.display)
+		e.display = nil
+	}
 
 	return nil
 }
 
 func (e *IBusTeniEngine) SetCapabilities(cap uint32) *dbus.Error {
-	e.enable = cap&IBUS_CAP_PREEDIT_TEXT != 0
+	e.Lock()
+	defer e.Unlock()
+
 	e.capSurrounding = cap&IBUS_CAP_SURROUNDING_TEXT != 0
 	return nil
 }
@@ -262,15 +279,16 @@ func (e *IBusTeniEngine) SetCursorLocation(x int32, y int32, w int32, h int32) *
 }
 
 func (e *IBusTeniEngine) SetContentType(purpose uint32, hints uint32) *dbus.Error {
-	e.enable = purpose == IBUS_INPUT_PURPOSE_FREE_FORM ||
-		purpose == IBUS_INPUT_PURPOSE_ALPHA ||
-		purpose == IBUS_INPUT_PURPOSE_NAME
+	e.Lock()
+	defer e.Unlock()
 
 	return nil
 }
 
 //@method(in_signature="su")
 func (e *IBusTeniEngine) PropertyActivate(propName string, propState uint32) *dbus.Error {
+	debug.FreeOSMemory()
+
 	if propName == PropKeyAbout {
 		exec.Command("xdg-open", HomePage).Start()
 		return nil

@@ -25,6 +25,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"runtime/debug"
 	"unicode"
 )
 
@@ -130,5 +131,6 @@ func InitWordTrie(dataFiles ...string) error {
 		f.Close()
 	}
 	runtime.GC()
+	debug.FreeOSMemory()
 	return nil
 }
