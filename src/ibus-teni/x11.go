@@ -120,14 +120,14 @@ func x11GetFocusWindowClass(display *C.Display) []string {
 		for {
 			s := x11GetStringProperty(display, w, WM_CLASS)
 
+			if len(s) > 0 {
+				strClass += s + "\n"
+			}
+
 			rootWindow, parentWindow := x11GetParentWindow(display, w)
 
 			if rootWindow == parentWindow {
 				break
-			}
-
-			if len(s) > 0 {
-				strClass += s + "\n"
 			}
 
 			w = parentWindow
