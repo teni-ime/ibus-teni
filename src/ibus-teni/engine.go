@@ -79,6 +79,15 @@ func IBusTeniEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
 	}
 	ibus.PublishEngine(conn, objectPath, engine)
 
+	onMouseClick = func() {
+		engine.Lock()
+		defer engine.Unlock()
+		if engine.preediter.RawKeyLen() > 0 {
+			engine.preediter.Reset()
+			engine.HidePreeditText()
+		}
+	}
+
 	return objectPath
 }
 
