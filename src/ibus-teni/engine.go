@@ -40,6 +40,7 @@ type IBusTeniEngine struct {
 	ibus.Engine
 	preediter      *teni.Engine
 	excepted       bool
+	zeroLocation   bool
 	capSurrounding bool
 	engineName     string
 	config         *Config
@@ -117,7 +118,7 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 	e.Lock()
 	defer e.Unlock()
 
-	if e.excepted ||
+	if e.zeroLocation || e.excepted ||
 		state&IBUS_RELEASE_MASK != 0 || //Ignore key-up event
 		(state&IBUS_SHIFT_MASK == 0 && (keyVal == IBUS_Shift_L || keyVal == IBUS_Shift_R)) { //Ignore 1 shift key
 		return false, nil
@@ -223,8 +224,7 @@ func (e *IBusTeniEngine) FocusIn() *dbus.Error {
 		e.display = x11OpenDisplay()
 	}
 	if e.config.EnableExcept == ibus.PROP_STATE_CHECKED {
-		awc := x11GetFocusWindowClass(e.display)
-		e.excepted = e.exceptMap.Contains(awc)
+		e.excepted = e.exceptMap.Contains(x11GetFocusWindowClass(e.display))
 	}
 
 	e.RegisterProperties(e.propList)
@@ -275,6 +275,7 @@ func (e *IBusTeniEngine) SetCapabilities(cap uint32) *dbus.Error {
 }
 
 func (e *IBusTeniEngine) SetCursorLocation(x int32, y int32, w int32, h int32) *dbus.Error {
+	e.zeroLocation = x == 0 && y == 0 && w == 0 && h == 0
 	return nil
 }
 
@@ -332,8 +333,10 @@ func (e *IBusTeniEngine) PropertyActivate(propName string, propState uint32) *db
 		e.propList = GetPropListByConfig(e.config)
 		if propState == ibus.PROP_STATE_CHECKED {
 			e.exceptMap.Enable()
+			e.excepted = e.exceptMap.Contains(x11GetFocusWindowClass(e.display))
 		} else {
 			e.exceptMap.Disable()
+			e.excepted = false
 		}
 		return nil
 	}
