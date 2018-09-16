@@ -1,14 +1,11 @@
 package main
 
 /*
-#cgo pkg-config: ibus-1.0
 #cgo CFLAGS: -std=c99
 #cgo LDFLAGS: -lX11
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <X11/keysym.h> //xproto-devel
-#include <ibus.h> //ibus-devel
-
 inline void ucharfree(unsigned char* uc) {
 	XFree(uc);
 }
@@ -56,6 +53,15 @@ var cacheWM = NewCacheWM(MaxCacheWM)
 func init() {
 	C.setXIgnoreErrorHandler()
 }
+
+func x11Sync(display *C.Display) {
+	C.XSync(display, 0)
+}
+
+func x11Flush(display *C.Display) {
+	C.XFlush(display)
+}
+
 
 func x11GetUCharProperty(display *C.Display, window C.Window, propName string) (*C.uchar, C.ulong) {
 	var actualType C.Atom
@@ -133,12 +139,4 @@ func x11GetFocusWindowClass(display *C.Display) []string {
 		return strings.Split(strClass, "\n")
 	}
 	return nil
-}
-
-func x11KeyvalToKeyCode(display *CDisplay, keyval uint32) uint32 {
-	return uint32(C.XKeysymToKeycode((*C.Display)(display), (C.KeySym)(keyval)))
-}
-
-func ibusUnicodeToKeyval(r rune) uint32 {
-	return uint32(C.ibus_unicode_to_keyval((C.gunichar)(r)))
 }
