@@ -35,6 +35,41 @@ void setXIgnoreErrorHandler() {
 	XSetErrorHandler(ignore_x_error);
 }
 
+void SendBackspace() {
+	Display *display = XOpenDisplay(NULL);
+	if (display) {
+
+		//find out window with current focus:
+        Window winfocus;
+        int    revert;
+        XGetInputFocus(display, &winfocus, &revert);
+
+		XKeyEvent keyEvent;
+        keyEvent.send_event=1;
+        keyEvent.keycode=22;
+        keyEvent.display=display;
+        //keyEvent.root=winfocus;
+        keyEvent.window=winfocus;
+
+		XEvent *event = (XEvent*)&keyEvent;
+
+
+        keyEvent.type=KeyPress;
+        keyEvent.state=16;
+
+		XSendEvent(display, InputFocus, False, KeyPressMask, event);
+		XFlush(display);
+
+        keyEvent.type=KeyRelease;
+        keyEvent.state=1073741840;
+		XSendEvent(display, InputFocus, False, KeyReleaseMask, event);
+		XFlush(display);
+
+		XCloseDisplay(display);
+	}
+}
+
+
 */
 import "C"
 import "strings"
@@ -60,6 +95,10 @@ func x11Sync(display *C.Display) {
 
 func x11Flush(display *C.Display) {
 	C.XFlush(display)
+}
+
+func x11Backspace() {
+	C.SendBackspace()
 }
 
 

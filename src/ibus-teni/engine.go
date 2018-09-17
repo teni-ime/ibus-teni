@@ -41,6 +41,7 @@ type IBusTeniEngine struct {
 	ibus.Engine
 	preediter      *teni.Engine
 	excepted       bool
+	zeroLocation   bool
 	capSurrounding bool
 	engineName     string
 	config         *Config
@@ -79,8 +80,27 @@ func IBusTeniEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
 	}
 	ibus.PublishEngine(conn, objectPath, engine)
 
+	onMouseClick = func() {
+		engine.Lock()
+		defer engine.Unlock()
+		if engine.preediter.RawKeyLen() > 0 {
+			//engine.preediter.Reset()
+			//engine.HidePreeditText()
+
+			x11Sync(engine.display)
+			x11Flush(engine.display)
+			engine.ForwardKeyEvent(IBUS_BackSpace, 14, 0)
+			x11Sync(engine.display)
+			x11Flush(engine.display)
+			engine.ForwardKeyEvent(IBUS_BackSpace, 14, IBUS_RELEASE_MASK)
+			x11Sync(engine.display)
+			x11Flush(engine.display)
+		}
+	}
+
 	return objectPath
 }
+
 
 func (e *IBusTeniEngine) SendBackSpace(state uint32, n int) {
 	log.Println("SendBackSpace", n)
@@ -98,15 +118,18 @@ func (e *IBusTeniEngine) SendBackSpace(state uint32, n int) {
 		for i := 0; i < n; i++ {
 			x11Sync(e.display)
 			x11Flush(e.display)
-			e.ForwardKeyEvent(IBUS_BackSpace, 14, state)
-			x11Sync(e.display)
-			x11Flush(e.display)
-			e.ForwardKeyEvent(IBUS_BackSpace, 14, state|IBUS_RELEASE_MASK)
-			x11Sync(e.display)
-			x11Flush(e.display)
+			x11Backspace()
+
+			//e.ForwardKeyEvent(IBUS_BackSpace, 14, state)
+			//x11Sync(e.display)
+			//x11Flush(e.display)
+			//e.ForwardKeyEvent(IBUS_BackSpace, 14, state|IBUS_RELEASE_MASK)
+			//x11Sync(e.display)
+			//x11Flush(e.display)
 		}
 	}
 }
+
 
 func (e *IBusTeniEngine) SendText(rs []rune) {
 	log.Println("Send key", string(rs))
@@ -123,6 +146,8 @@ func (e *IBusTeniEngine) SendText(rs []rune) {
 	x11Sync(e.display)
 	e.CommitText(ibus.NewText(string(rs)))
 }
+
+
 
 func (e *IBusTeniEngine) updatePreedit(newRunes, oldRunes []rune, state uint32) {
 
@@ -149,7 +174,7 @@ func (e *IBusTeniEngine) updatePreedit(newRunes, oldRunes []rune, state uint32) 
 
 	nBackSpace := 0
 	if diffFrom < newLen && diffFrom < oldLen {
-		e.SendText([]rune{'　'}) //https://en.wikipedia.org/wiki/Whitespace_character
+		e.SendText([]rune{0x200A}) // https://en.wikipedia.org/wiki/Whitespace_character
 		nBackSpace += 1
 	}
 
@@ -168,12 +193,11 @@ func (e *IBusTeniEngine) commitPreedit(lastKey uint32) bool {
 }
 
 func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state uint32) (bool, *dbus.Error) {
-	log.Println(keyVal, keyCode, state)
-
 	e.Lock()
 	defer e.Unlock()
+	log.Println(keyVal, keyCode, state)
 
-	if e.excepted ||
+	if e.zeroLocation || e.excepted ||
 		state&IBUS_RELEASE_MASK != 0 || //Ignore key-up event
 		(state&IBUS_SHIFT_MASK == 0 && (keyVal == IBUS_Shift_L || keyVal == IBUS_Shift_R)) { //Ignore 1 shift key
 		return false, nil
@@ -303,13 +327,15 @@ func (e *IBusTeniEngine) FocusOut() *dbus.Error {
 }
 
 func (e *IBusTeniEngine) Reset() *dbus.Error {
-	//e.preediter.Reset()
+	e.Lock()
+	defer e.Unlock()
+
+	e.preediter.Reset()
 
 	return nil
 }
 
 func (e *IBusTeniEngine) Enable() *dbus.Error {
-	e.preediter.Reset()
 	return nil
 }
 
@@ -338,9 +364,6 @@ func (e *IBusTeniEngine) SetCursorLocation(x int32, y int32, w int32, h int32) *
 }
 
 func (e *IBusTeniEngine) SetContentType(purpose uint32, hints uint32) *dbus.Error {
-	e.Lock()
-	defer e.Unlock()
-
 	return nil
 }
 
@@ -394,8 +417,10 @@ func (e *IBusTeniEngine) PropertyActivate(propName string, propState uint32) *db
 		e.propList = GetPropListByConfig(e.config)
 		if propState == ibus.PROP_STATE_CHECKED {
 			e.exceptMap.Enable()
+			e.excepted = e.exceptMap.Contains(x11GetFocusWindowClass(e.display))
 		} else {
 			e.exceptMap.Disable()
+			e.excepted = false
 		}
 		return nil
 	}
