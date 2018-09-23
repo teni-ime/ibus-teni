@@ -22,7 +22,7 @@
 
 %define engine_name  teni
 %define package_name ibus-%{engine_name}
-%define version      1.3.2
+%define version      1.3.3
 
 
 #install directories ----------------------------------------------------------
@@ -81,6 +81,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Sun Sep 23 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.3.3
+- Tối ưu chức năng "Loại trừ ứng dụng"
+- Sửa lỗi không gõ được sau khi click chuột đi chỗ khác
+- Thêm xử lý xóa pre-edit khi click chuột
 * Sat Sep 15 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.3.2
 - Tối ưu chức năng "Loại trừ ứng dụng"
 - Sửa lỗi không gõ được trên FreeOffice và Wine

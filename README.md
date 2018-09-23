@@ -42,6 +42,12 @@ sudo apt-get install ibus-teni
 ibus restart
 ```
 
+**Lệnh bên dưới cho phép đọc event chuột, không bắt buộc nhưng cần để ibus-teni hoạt động tốt**
+```sh
+sudo chmod +r /dev/input/mice
+```
+
+
 *Cài đặt cho các bản Linux khác và hướng dẫn cài đặt từ mã nguồn: [wiki](https://github.com/teni-ime/ibus-teni/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-c%C3%A0i-%C4%91%E1%BA%B7t)*
     
 ### Cấu hình
