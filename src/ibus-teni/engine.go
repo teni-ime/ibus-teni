@@ -92,7 +92,12 @@ func IBusTeniEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
 }
 
 func (e *IBusTeniEngine) updatePreedit() {
-	e.UpdatePreeditTextWithMode(ibus.NewText(e.preediter.GetResultStr()), e.preediter.ResultLen(), true, ibus.IBUS_ENGINE_PREEDIT_COMMIT)
+	if preeditText, preeditLen := e.preediter.GetResultStr(), e.preediter.ResultLen(); preeditLen > 0 {
+		e.UpdatePreeditTextWithMode(ibus.NewText(preeditText), preeditLen, true, ibus.IBUS_ENGINE_PREEDIT_COMMIT)
+	} else {
+		e.HidePreeditText()
+		e.preediter.Reset()
+	}
 }
 
 func (e *IBusTeniEngine) commitPreedit(lastKey uint32) bool {
