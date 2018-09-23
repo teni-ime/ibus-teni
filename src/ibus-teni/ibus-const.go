@@ -58,20 +58,6 @@ const (
 	IBUS_CAP_SURROUNDING_TEXT = 1 << 5 //Client can provide surround text, or IME can handle surround text.
 )
 
-const (
-	//IBusInputPurpose
-	IBUS_INPUT_PURPOSE_FREE_FORM = 0 //Allow any character
-	IBUS_INPUT_PURPOSE_ALPHA     = 1 //Allow only alphabetic characters
-	//IBUS_INPUT_PURPOSE_DIGITS    = 2 //Allow only digits
-	//IBUS_INPUT_PURPOSE_NUMBER    = 3 //Edited field expects numbers
-	//IBUS_INPUT_PURPOSE_PHONE     = 4 //Edited field expects phone number
-	//IBUS_INPUT_PURPOSE_URL       = 5 //Edited field expects URL
-	//IBUS_INPUT_PURPOSE_EMAIL     = 6 //Edited field expects email address
-	IBUS_INPUT_PURPOSE_NAME = 7 //Edited field expects the name of a person
-	//IBUS_INPUT_PURPOSE_PASSWORD  = 8 //Like IBUS_INPUT_PURPOSE_FREE_FORM, but characters are hidden
-	//IBUS_INPUT_PURPOSE_PIN       = 9 //Like IBUS_INPUT_PURPOSE_DIGITS, but characters are hidden
-)
-
 // ibuskeysyms-compat
 // http://ibus.github.io/docs/ibus-1.5/ibus-ibuskeysyms-compat.htm
 
