@@ -259,6 +259,9 @@ func (e *IBusTeniEngine) Reset() *dbus.Error {
 	e.Lock()
 	defer e.Unlock()
 
+	if e.preediter.RawKeyLen() > 0 {
+		e.HidePreeditText()
+	}
 	e.preediter.Reset()
 
 	return nil
