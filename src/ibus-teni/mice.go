@@ -21,7 +21,6 @@
 package main
 
 import (
-	"log"
 	"os"
 )
 
@@ -40,7 +39,6 @@ func init() {
 			data := make([]byte, 3)
 			for {
 				n, err := miceDev.Read(data)
-				log.Println(data)
 				if err == nil && n == 3 && data[0]&0x7 != 0 {
 					if !down {
 						if onMouseClick != nil {
