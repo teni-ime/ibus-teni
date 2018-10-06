@@ -50,9 +50,10 @@ const (
 )
 
 type Config struct {
-	InputMethod  teni.InputMethod
-	ToneType     ToneType
-	EnableExcept uint32
+	InputMethod    teni.InputMethod
+	ToneType       ToneType
+	EnableExcept   uint32
+	EnableLongText uint32
 }
 
 func LoadConfig(engineName string) *Config {

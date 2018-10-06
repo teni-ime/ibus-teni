@@ -184,17 +184,6 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 		}
 	}
 
-	if keyVal == IBUS_space || keyVal == IBUS_KP_Space {
-		if e.preediter.ResultLen() > 0 {
-			e.commitPreedit(0)
-			if e.capSurrounding {
-				return false, nil
-			}
-			e.ForwardKeyEvent(keyVal, keyCode, state)
-			return true, nil
-		}
-	}
-
 	if e.preediter.RawKeyLen() > 2*teni.MaxWordLength {
 		e.commitPreedit(keyVal)
 		return true, nil
@@ -360,6 +349,13 @@ func (e *IBusTeniEngine) PropertyActivate(propName string, propState uint32) *db
 
 	if propName == PropKeyExceptList {
 		OpenExceptListFile(e.engineName)
+		return nil
+	}
+
+	if propName == PropKeyLongText {
+		e.config.EnableLongText = propState
+		SaveConfig(e.config, e.engineName)
+		e.propList = GetPropListByConfig(e.config)
 		return nil
 	}
 
