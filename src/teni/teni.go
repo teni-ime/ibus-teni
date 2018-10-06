@@ -49,6 +49,7 @@ type Engine struct {
 	EngineState
 	stateStack  []EngineState
 	InputMethod InputMethod
+	ForceSpell  bool
 }
 
 type resultCase struct {
@@ -80,6 +81,7 @@ func NewEngine() *Engine {
 		},
 		stateStack:  nil,
 		InputMethod: IMTeni,
+		ForceSpell:  true,
 	}
 }
 
@@ -279,7 +281,7 @@ func (pc *Engine) AddKey(key rune) {
 
 		if !finalCase.revertMode &&
 			finalCase.findResult == FindResultNotMatch {
-			if pc.HasToneChar() {
+			if pc.HasToneChar() && pc.ForceSpell {
 				resultRunes = append(pc.rawKeys, key)
 			} else {
 				resultRunes = append(pc.getCopyResult(), key)

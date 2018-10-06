@@ -74,6 +74,7 @@ func IBusTeniEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
 		exceptMap:  &ExceptMap{engineName: engineName},
 	}
 	engine.preediter.InputMethod = config.InputMethod
+	engine.preediter.ForceSpell = config.EnableForceSpell == ibus.PROP_STATE_CHECKED
 	if config.EnableExcept == ibus.PROP_STATE_CHECKED {
 		engine.exceptMap.Enable()
 	}
@@ -105,8 +106,10 @@ func (e *IBusTeniEngine) commitPreedit(lastKey uint32) bool {
 	var commitStr string
 	if lastKey == IBUS_Escape {
 		commitStr = e.preediter.GetRawStr()
-	} else {
+	} else if e.config.EnableForceSpell == ibus.PROP_STATE_CHECKED {
 		commitStr = e.preediter.GetCommitResultStr()
+	} else {
+		commitStr = e.preediter.GetResultStr()
 	}
 	e.preediter.Reset()
 
@@ -153,15 +156,10 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 		}
 	}
 
-	if keyVal == IBUS_BackSpace {
-		if e.preediter.RawKeyLen() > 0 {
-			e.preediter.Backspace()
-			e.updatePreedit()
-			return true, nil
-		}
-
-		//No thing left, just ignore
-		return false, nil
+	if keyVal == IBUS_BackSpace && e.preediter.RawKeyLen() > 0 {
+		e.preediter.Backspace()
+		e.updatePreedit()
+		return true, nil
 	}
 
 	if keyVal == IBUS_Return || keyVal == IBUS_KP_Enter {
@@ -323,6 +321,7 @@ func (e *IBusTeniEngine) PropertyActivate(propName string, propState uint32) *db
 		}
 		SaveConfig(e.config, e.engineName)
 		e.propList = GetPropListByConfig(e.config)
+		e.RegisterProperties(e.propList)
 		if e.config.ToneType != oldToneType {
 			if e.config.ToneType == ConfigToneStd {
 				teni.InitWordTrie(DictStdList...)
@@ -337,6 +336,7 @@ func (e *IBusTeniEngine) PropertyActivate(propName string, propState uint32) *db
 		e.config.EnableExcept = propState
 		SaveConfig(e.config, e.engineName)
 		e.propList = GetPropListByConfig(e.config)
+		e.RegisterProperties(e.propList)
 		if propState == ibus.PROP_STATE_CHECKED {
 			e.exceptMap.Enable()
 			e.excepted = e.exceptMap.Contains(x11GetFocusWindowClass(e.display))
@@ -356,6 +356,16 @@ func (e *IBusTeniEngine) PropertyActivate(propName string, propState uint32) *db
 		e.config.EnableLongText = propState
 		SaveConfig(e.config, e.engineName)
 		e.propList = GetPropListByConfig(e.config)
+		e.RegisterProperties(e.propList)
+		return nil
+	}
+
+	if propName == PropKeyForceSpell {
+		e.config.EnableForceSpell = propState
+		SaveConfig(e.config, e.engineName)
+		e.propList = GetPropListByConfig(e.config)
+		e.RegisterProperties(e.propList)
+		e.preediter.ForceSpell = e.config.EnableForceSpell == ibus.PROP_STATE_CHECKED
 		return nil
 	}
 

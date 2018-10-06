@@ -36,6 +36,7 @@ const (
 	PropKeyExcept      = "except"
 	PropKeyExceptList  = "except_list"
 	PropKeyLongText    = "long_text"
+	PropKeyForceSpell  = "force_spell"
 )
 
 var runMode = ""
@@ -175,7 +176,6 @@ func GetPropListByConfig(c *Config) *ibus.PropList {
 			Tooltip:   dbus.MakeVariant(ibus.NewText("Loại trừ các ứng dụng không cần gõ tiếng Việt")),
 			Sensitive: true,
 			Visible:   true,
-			Icon:      "gtk-about",
 			State:     c.EnableExcept,
 			Symbol:    dbus.MakeVariant(ibus.NewText("L")),
 			SubProps:  dbus.MakeVariant(*ibus.NewPropList()),
@@ -187,7 +187,6 @@ func GetPropListByConfig(c *Config) *ibus.PropList {
 			Tooltip:   dbus.MakeVariant(ibus.NewText("Mở file danh sách các ứng dụng không cần gõ tiếng Việt")),
 			Sensitive: true,
 			Visible:   true,
-			Icon:      "gtk-about",
 			Symbol:    dbus.MakeVariant(ibus.NewText("D")),
 			SubProps:  dbus.MakeVariant(*ibus.NewPropList()),
 		},
@@ -206,11 +205,21 @@ func GetPropListByConfig(c *Config) *ibus.PropList {
 			Key:       PropKeyLongText,
 			Type:      ibus.PROP_TYPE_TOGGLE,
 			Label:     dbus.MakeVariant(ibus.NewText("Giữ nhiều chữ")),
-			Tooltip:   dbus.MakeVariant(ibus.NewText("Giữ nhiều chữ khi đang gõ, cho phép xóa và sửa dấu nhanh")),
+			Tooltip:   dbus.MakeVariant(ibus.NewText("Giữ nhiều chữ khi đang gõ, cho sửa dấu các từ đã gõ xong")),
 			Sensitive: true,
 			Visible:   true,
-			Icon:      "gtk-about",
 			State:     c.EnableLongText,
+			Symbol:    dbus.MakeVariant(ibus.NewText("G")),
+			SubProps:  dbus.MakeVariant(*ibus.NewPropList()),
+		}, &ibus.Property{
+			Name:      "IBusProperty",
+			Key:       PropKeyForceSpell,
+			Type:      ibus.PROP_TYPE_TOGGLE,
+			Label:     dbus.MakeVariant(ibus.NewText("Đúng chính tả")),
+			Tooltip:   dbus.MakeVariant(ibus.NewText("Sẽ khôi phục phím với những từ không có trong từ điển tiếng Việt")),
+			Sensitive: true,
+			Visible:   true,
+			State:     c.EnableForceSpell,
 			Symbol:    dbus.MakeVariant(ibus.NewText("G")),
 			SubProps:  dbus.MakeVariant(*ibus.NewPropList()),
 		},
