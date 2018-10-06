@@ -27,7 +27,7 @@ import (
 
 const (
 	MaxWordLength = 15
-	MaxStateStack = 5
+	MaxStateStack = 2
 )
 
 type InputMethod int
@@ -112,10 +112,16 @@ func (pc *Engine) Reset() {
 	pc.stateBackCount = 0
 }
 
-func (pc *Engine) PushStateBack() {
+func (pc *Engine) PushStateBack() int {
+	cutLen := 0
 	if pc.RawKeyLen() > 0 {
 		if len(pc.stateStack) == MaxStateStack {
+			firstState := pc.stateStack[0]
+			cutLen = len(firstState.resultStack[len(firstState.resultStack)-1])
 			pc.stateStack = pc.stateStack[1:]
+			if len(pc.stateStack) > 0 {
+				cutLen += int(pc.stateStack[0].stateBackCount)
+			}
 		}
 		pc.stateStack = append(pc.stateStack, EngineState{
 			stateBackCount: pc.stateBackCount,
@@ -133,9 +139,11 @@ func (pc *Engine) PushStateBack() {
 	} else if len(pc.stateStack) > 0 {
 		pc.stateBackCount++
 	}
+
+	return cutLen
 }
 
-func (pc *Engine) PopStateBack() {
+func (pc *Engine) PopStateBack() int {
 	if len(pc.stateStack) > 0 && pc.RawKeyLen() == 0 {
 		pc.stateBackCount--
 		if pc.stateBackCount == 0 && len(pc.stateStack) > 0 {
@@ -146,8 +154,12 @@ func (pc *Engine) PopStateBack() {
 			pc.resultStack = lastState.resultStack
 
 			pc.stateStack = pc.stateStack[:len(pc.stateStack)-1]
+
+			return int(pc.ResultLen())
 		}
 	}
+
+	return 0
 }
 
 func (pc *Engine) GetResult() []rune {
@@ -177,6 +189,14 @@ func (pc *Engine) isCompleted() bool {
 		return pc.completedStack[l-1]
 	}
 	return false
+}
+
+func (pc *Engine) GetCommitResult() []rune {
+	if pc.isCompleted() || !pc.HasToneChar() {
+		return pc.GetResult()
+	}
+
+	return pc.rawKeys
 }
 
 func (pc *Engine) GetCommitResultStr() string {

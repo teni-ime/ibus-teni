@@ -47,11 +47,53 @@ type IBusTeniEngine struct {
 	propList       *ibus.PropList
 	exceptMap      *ExceptMap
 	display        CDisplay
+	longText       []rune
 }
 
 var (
 	DictStdList = []string{DictVietnameseCm, DictVietnameseSp, DictVietnameseStd}
 	DictNewList = []string{DictVietnameseCm, DictVietnameseSp, DictVietnameseNew}
+
+	printableKeyCode = map[uint32]bool{
+		0x0039: true,
+		0x0002: true,
+		0x0003: true,
+		0x0004: true,
+		0x0005: true,
+		0x0006: true,
+		0x0007: true,
+		0x0008: true,
+		0x0009: true,
+		0x000a: true,
+		0x000b: true,
+		0x000c: true,
+		0x000d: true,
+		0x007c: true,
+		0x001a: true,
+		0x001b: true,
+		0x0027: true,
+		0x0028: true,
+		0x002b: true,
+		0x0033: true,
+		0x0034: true,
+		0x0035: true,
+		0x0059: true,
+		0x0052: true,
+		0x0053: true,
+		0x004f: true,
+		0x0050: true,
+		0x0051: true,
+		0x004b: true,
+		0x004c: true,
+		0x004d: true,
+		0x0047: true,
+		0x0048: true,
+		0x0049: true,
+		0x0062: true,
+		0x0037: true,
+		0x004a: true,
+		0x004e: true,
+	}
 )
 
 func IBusTeniEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
@@ -84,8 +126,9 @@ func IBusTeniEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
 		engine.Lock()
 		defer engine.Unlock()
 		if engine.preediter.RawKeyLen() > 0 {
-			engine.preediter.Reset()
 			engine.HidePreeditText()
+			engine.preediter.Reset()
+			engine.longText = engine.longText[:0]
 		}
 	}
 
@@ -93,7 +136,11 @@ func IBusTeniEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
 }
 
 func (e *IBusTeniEngine) updatePreedit() {
-	if preeditText, preeditLen := e.preediter.GetResultStr(), e.preediter.ResultLen(); preeditLen > 0 {
+	preeditText := string(e.longText)
+	preeditLen := uint32(len(e.longText))
+	preeditText += e.preediter.GetResultStr()
+	preeditLen += e.preediter.ResultLen()
+	if preeditLen > 0 {
 		e.UpdatePreeditTextWithMode(ibus.NewText(preeditText), preeditLen, true, ibus.IBUS_ENGINE_PREEDIT_COMMIT)
 	} else {
 		e.HidePreeditText()
@@ -103,15 +150,16 @@ func (e *IBusTeniEngine) updatePreedit() {
 
 func (e *IBusTeniEngine) commitPreedit(lastKey uint32) bool {
 	var keyAppended = false
-	var commitStr string
+	var commitStr = string(e.longText)
 	if lastKey == IBUS_Escape {
-		commitStr = e.preediter.GetRawStr()
+		commitStr += e.preediter.GetRawStr()
 	} else if e.config.EnableForceSpell == ibus.PROP_STATE_CHECKED {
-		commitStr = e.preediter.GetCommitResultStr()
+		commitStr += e.preediter.GetCommitResultStr()
 	} else {
-		commitStr = e.preediter.GetResultStr()
+		commitStr += e.preediter.GetResultStr()
 	}
 	e.preediter.Reset()
+	e.longText = e.longText[:0]
 
 	//Convert num-pad key to normal number
 	if (lastKey >= IBUS_KP_0 && lastKey <= IBUS_KP_9) ||
@@ -156,14 +204,21 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 		}
 	}
 
-	if keyVal == IBUS_BackSpace && e.preediter.RawKeyLen() > 0 {
-		e.preediter.Backspace()
-		e.updatePreedit()
-		return true, nil
+	if keyVal == IBUS_BackSpace {
+		if e.preediter.RawKeyLen() > 0 {
+			e.preediter.Backspace()
+			e.updatePreedit()
+			return true, nil
+		} else if lenLongText := len(e.longText); lenLongText > 0 {
+			backLen := e.preediter.PopStateBack()
+			e.longText = e.longText[:lenLongText-1-backLen]
+			e.updatePreedit()
+			return true, nil
+		}
 	}
 
 	if keyVal == IBUS_Return || keyVal == IBUS_KP_Enter {
-		if e.preediter.ResultLen() > 0 {
+		if e.preediter.ResultLen() > 0 || len(e.longText) > 0 {
 			e.commitPreedit(keyVal)
 			if e.capSurrounding {
 				return false, nil
@@ -200,6 +255,23 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 		return true, nil
 	} else {
 		if e.preediter.ResultLen() > 0 {
+			if e.config.EnableLongText == ibus.PROP_STATE_CHECKED && printableKeyCode[keyCode] {
+				if e.config.EnableForceSpell == ibus.PROP_STATE_CHECKED {
+					e.longText = append(e.longText, e.preediter.GetCommitResult()...)
+				} else {
+					e.longText = append(e.longText, e.preediter.GetResult()...)
+				}
+				cutLen := e.preediter.PushStateBack()
+				if cutLen > 0 {
+					e.CommitText(ibus.NewText(string(e.longText[:cutLen])))
+					e.longText = e.longText[cutLen:]
+				}
+				e.longText = append(e.longText, rune(keyVal))
+				preeditText, preeditLen := string(e.longText), uint32(len(e.longText))
+				e.UpdatePreeditTextWithMode(ibus.NewText(preeditText), preeditLen, true, ibus.IBUS_ENGINE_PREEDIT_COMMIT)
+				return true, nil
+			}
+
 			if e.commitPreedit(keyVal) {
 				//lastKey already appended to commit string
 				return true, nil
@@ -211,6 +283,12 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 				e.ForwardKeyEvent(keyVal, keyCode, state)
 				return true, nil
 			}
+		} else if e.config.EnableLongText == ibus.PROP_STATE_CHECKED && printableKeyCode[keyCode] {
+			e.preediter.PushStateBack()
+			e.longText = append(e.longText, rune(keyVal))
+			preeditText, preeditLen := string(e.longText), uint32(len(e.longText))
+			e.UpdatePreeditTextWithMode(ibus.NewText(preeditText), preeditLen, true, ibus.IBUS_ENGINE_PREEDIT_COMMIT)
+			return true, nil
 		}
 		//pre-edit empty, just forward key
 		return false, nil
@@ -221,10 +299,10 @@ func (e *IBusTeniEngine) FocusIn() *dbus.Error {
 	e.Lock()
 	defer e.Unlock()
 
-	if e.display == nil {
-		e.display = x11OpenDisplay()
-	}
 	if e.config.EnableExcept == ibus.PROP_STATE_CHECKED {
+		if e.display == nil {
+			e.display = x11OpenDisplay()
+		}
 		e.excepted = e.exceptMap.Contains(x11GetFocusWindowClass(e.display))
 	}
 
@@ -238,6 +316,7 @@ func (e *IBusTeniEngine) FocusOut() *dbus.Error {
 	defer e.Unlock()
 
 	e.preediter.Reset()
+	e.longText = e.longText[:0]
 
 	return nil
 }
@@ -250,6 +329,7 @@ func (e *IBusTeniEngine) Reset() *dbus.Error {
 		e.HidePreeditText()
 	}
 	e.preediter.Reset()
+	e.longText = e.longText[:0]
 
 	return nil
 }
