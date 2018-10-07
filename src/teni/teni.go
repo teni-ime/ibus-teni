@@ -112,6 +112,10 @@ func (pc *Engine) Reset() {
 	pc.stateBackCount = 0
 }
 
+func (pc *Engine) LenStateBack() int {
+	return len(pc.stateStack)
+}
+
 func (pc *Engine) PushStateBack() int {
 	cutLen := 0
 	if pc.RawKeyLen() > 0 {

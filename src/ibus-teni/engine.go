@@ -195,7 +195,7 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 		state&IBUS_SUPER_MASK != 0 ||
 		state&IBUS_HYPER_MASK != 0 ||
 		state&IBUS_META_MASK != 0 {
-		if e.preediter.RawKeyLen() == 0 {
+		if e.preediter.RawKeyLen() == 0 && len(e.longText) == 0 {
 			//No thing left, just ignore
 			return false, nil
 		} else {
@@ -254,7 +254,7 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 		e.updatePreedit()
 		return true, nil
 	} else {
-		if e.preediter.ResultLen() > 0 {
+		if e.preediter.ResultLen() > 0 || len(e.longText) > 0 {
 			if e.config.EnableLongText == ibus.PROP_STATE_CHECKED && printableKeyCode[keyCode] {
 				if e.config.EnableForceSpell == ibus.PROP_STATE_CHECKED {
 					e.longText = append(e.longText, e.preediter.GetCommitResult()...)
@@ -283,7 +283,7 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 				e.ForwardKeyEvent(keyVal, keyCode, state)
 				return true, nil
 			}
-		} else if e.config.EnableLongText == ibus.PROP_STATE_CHECKED && printableKeyCode[keyCode] {
+		} else if e.config.EnableLongText == ibus.PROP_STATE_CHECKED && printableKeyCode[keyCode] && e.preediter.LenStateBack() > 0 {
 			e.preediter.PushStateBack()
 			e.longText = append(e.longText, rune(keyVal))
 			preeditText, preeditLen := string(e.longText), uint32(len(e.longText))
