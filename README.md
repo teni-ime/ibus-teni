@@ -44,7 +44,7 @@ ibus restart
 
 **Lệnh bên dưới cho phép đọc event chuột, không bắt buộc nhưng cần để ibus-teni hoạt động tốt**
 ```sh
-sudo chmod +r /dev/input/mice
+sudo usermod -a -G input $USER
 ```
 
 

@@ -25,7 +25,10 @@ import (
 	"strings"
 )
 
-const MaxWordLength = 15
+const (
+	MaxWordLength = 15
+	MaxStateStack = 2
+)
 
 type InputMethod int
 
@@ -35,11 +38,18 @@ const (
 	IMTelex InputMethod = iota
 )
 
-type Engine struct {
+type EngineState struct {
 	rawKeys        []rune
 	resultStack    [][]rune
 	completedStack []bool
-	InputMethod    InputMethod
+	stateBackCount uint32
+}
+
+type Engine struct {
+	EngineState
+	stateStack  []EngineState
+	InputMethod InputMethod
+	ForceSpell  bool
 }
 
 type resultCase struct {
@@ -63,10 +73,15 @@ func (p resultCases) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 
 func NewEngine() *Engine {
 	return &Engine{
-		rawKeys:        nil,
-		resultStack:    nil,
-		completedStack: nil,
-		InputMethod:    IMTeni,
+		EngineState: EngineState{
+			rawKeys:        nil,
+			resultStack:    nil,
+			completedStack: nil,
+			stateBackCount: 0,
+		},
+		stateStack:  nil,
+		InputMethod: IMTeni,
+		ForceSpell:  true,
 	}
 }
 
@@ -90,6 +105,65 @@ func (pc *Engine) Reset() {
 	if len(pc.resultStack) > 0 {
 		pc.resultStack = pc.resultStack[:0]
 	}
+
+	if len(pc.stateStack) > 0 {
+		pc.stateStack = pc.stateStack[:0]
+	}
+	pc.stateBackCount = 0
+}
+
+func (pc *Engine) LenStateBack() int {
+	return len(pc.stateStack)
+}
+
+func (pc *Engine) PushStateBack() int {
+	cutLen := 0
+	if pc.RawKeyLen() > 0 {
+		if len(pc.stateStack) == MaxStateStack {
+			firstState := pc.stateStack[0]
+			cutLen = len(firstState.resultStack[len(firstState.resultStack)-1])
+			pc.stateStack = pc.stateStack[1:]
+			if len(pc.stateStack) > 0 {
+				cutLen += int(pc.stateStack[0].stateBackCount)
+			}
+		}
+		pc.stateStack = append(pc.stateStack, EngineState{
+			stateBackCount: pc.stateBackCount,
+			completedStack: pc.completedStack,
+			rawKeys:        pc.rawKeys,
+			resultStack:    pc.resultStack,
+		})
+		if len(pc.rawKeys) > 0 {
+			pc.rawKeys = nil
+		}
+		if len(pc.resultStack) > 0 {
+			pc.resultStack = nil
+		}
+		pc.stateBackCount = 1
+	} else if len(pc.stateStack) > 0 {
+		pc.stateBackCount++
+	}
+
+	return cutLen
+}
+
+func (pc *Engine) PopStateBack() int {
+	if len(pc.stateStack) > 0 && pc.RawKeyLen() == 0 {
+		pc.stateBackCount--
+		if pc.stateBackCount == 0 && len(pc.stateStack) > 0 {
+			lastState := pc.stateStack[len(pc.stateStack)-1]
+			pc.stateBackCount = lastState.stateBackCount
+			pc.completedStack = lastState.completedStack
+			pc.rawKeys = lastState.rawKeys
+			pc.resultStack = lastState.resultStack
+
+			pc.stateStack = pc.stateStack[:len(pc.stateStack)-1]
+
+			return int(pc.ResultLen())
+		}
+	}
+
+	return 0
 }
 
 func (pc *Engine) GetResult() []rune {
@@ -121,6 +195,14 @@ func (pc *Engine) isCompleted() bool {
 	return false
 }
 
+func (pc *Engine) GetCommitResult() []rune {
+	if pc.isCompleted() || !pc.HasToneChar() {
+		return pc.GetResult()
+	}
+
+	return pc.rawKeys
+}
+
 func (pc *Engine) GetCommitResultStr() string {
 	if pc.isCompleted() || !pc.HasToneChar() {
 		return pc.GetResultStr()
@@ -131,6 +213,10 @@ func (pc *Engine) GetCommitResultStr() string {
 
 func (pc *Engine) GetRawStr() string {
 	return string(pc.rawKeys)
+}
+
+func (pc *Engine) GetRaw() []rune {
+	return pc.rawKeys
 }
 
 func copyRunes(r []rune) []rune {
@@ -219,7 +305,7 @@ func (pc *Engine) AddKey(key rune) {
 
 		if !finalCase.revertMode &&
 			finalCase.findResult == FindResultNotMatch {
-			if pc.HasToneChar() {
+			if pc.HasToneChar() && pc.ForceSpell {
 				resultRunes = append(pc.rawKeys, key)
 			} else {
 				resultRunes = append(pc.getCopyResult(), key)

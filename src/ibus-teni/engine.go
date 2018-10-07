@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"github.com/godbus/dbus"
 	"github.com/sarim/goibus/ibus"
+	"log"
 	"os/exec"
 	"runtime/debug"
 	"sync"
@@ -47,11 +48,38 @@ type IBusTeniEngine struct {
 	propList       *ibus.PropList
 	exceptMap      *ExceptMap
 	display        CDisplay
+	prevText       []rune
 }
 
 var (
 	DictStdList = []string{DictVietnameseCm, DictVietnameseSp, DictVietnameseStd}
 	DictNewList = []string{DictVietnameseCm, DictVietnameseSp, DictVietnameseNew}
+
+	printableKeyCode = map[uint32]bool{
+		0x0039: true,
+		0x0002: true,
+		0x0003: true,
+		0x0004: true,
+		0x0005: true,
+		0x0006: true,
+		0x0007: true,
+		0x0008: true,
+		0x0009: true,
+		0x000a: true,
+		0x000b: true,
+		0x000c: true,
+		0x000d: true,
+		0x007c: true,
+		0x001a: true,
+		0x001b: true,
+		0x0027: true,
+		0x0028: true,
+		0x002b: true,
+		0x0033: true,
+		0x0034: true,
+		0x0035: true,
+		0x0059: true,
+	}
 )
 
 func IBusTeniEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
@@ -74,6 +102,7 @@ func IBusTeniEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
 		exceptMap:  &ExceptMap{engineName: engineName},
 	}
 	engine.preediter.InputMethod = config.InputMethod
+	engine.preediter.ForceSpell = config.EnableForceSpell == ibus.PROP_STATE_CHECKED
 	if config.EnableExcept == ibus.PROP_STATE_CHECKED {
 		engine.exceptMap.Enable()
 	}
@@ -83,8 +112,9 @@ func IBusTeniEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
 		engine.Lock()
 		defer engine.Unlock()
 		if engine.preediter.RawKeyLen() > 0 {
-			engine.preediter.Reset()
 			engine.HidePreeditText()
+			engine.preediter.Reset()
+			engine.prevText = engine.prevText[:0]
 		}
 	}
 
@@ -92,7 +122,11 @@ func IBusTeniEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
 }
 
 func (e *IBusTeniEngine) updatePreedit() {
-	if preeditText, preeditLen := e.preediter.GetResultStr(), e.preediter.ResultLen(); preeditLen > 0 {
+	preeditText := string(e.prevText)
+	preeditLen := uint32(len(e.prevText))
+	preeditText += e.preediter.GetResultStr()
+	preeditLen += e.preediter.ResultLen()
+	if preeditLen > 0 {
 		e.UpdatePreeditTextWithMode(ibus.NewText(preeditText), preeditLen, true, ibus.IBUS_ENGINE_PREEDIT_COMMIT)
 	} else {
 		e.HidePreeditText()
@@ -102,13 +136,16 @@ func (e *IBusTeniEngine) updatePreedit() {
 
 func (e *IBusTeniEngine) commitPreedit(lastKey uint32) bool {
 	var keyAppended = false
-	var commitStr string
+	var commitStr = string(e.prevText)
 	if lastKey == IBUS_Escape {
-		commitStr = e.preediter.GetRawStr()
+		commitStr += e.preediter.GetRawStr()
+	} else if e.config.EnableForceSpell == ibus.PROP_STATE_CHECKED {
+		commitStr += e.preediter.GetCommitResultStr()
 	} else {
-		commitStr = e.preediter.GetCommitResultStr()
+		commitStr += e.preediter.GetResultStr()
 	}
 	e.preediter.Reset()
+	e.prevText = e.prevText[:0]
 
 	//Convert num-pad key to normal number
 	if (lastKey >= IBUS_KP_0 && lastKey <= IBUS_KP_9) ||
@@ -144,7 +181,7 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 		state&IBUS_SUPER_MASK != 0 ||
 		state&IBUS_HYPER_MASK != 0 ||
 		state&IBUS_META_MASK != 0 {
-		if e.preediter.RawKeyLen() == 0 {
+		if e.preediter.RawKeyLen() == 0 && len(e.prevText) == 0 {
 			//No thing left, just ignore
 			return false, nil
 		} else {
@@ -158,14 +195,16 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 			e.preediter.Backspace()
 			e.updatePreedit()
 			return true, nil
+		} else if lenLongText := len(e.prevText); lenLongText > 0 {
+			backLen := e.preediter.PopStateBack()
+			e.prevText = e.prevText[:lenLongText-1-backLen]
+			e.updatePreedit()
+			return true, nil
 		}
-
-		//No thing left, just ignore
-		return false, nil
 	}
 
 	if keyVal == IBUS_Return || keyVal == IBUS_KP_Enter {
-		if e.preediter.ResultLen() > 0 {
+		if e.preediter.ResultLen() > 0 || len(e.prevText) > 0 {
 			e.commitPreedit(keyVal)
 			if e.capSurrounding {
 				return false, nil
@@ -183,18 +222,7 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 			return true, nil
 		}
 	}
-
-	if keyVal == IBUS_space || keyVal == IBUS_KP_Space {
-		if e.preediter.ResultLen() > 0 {
-			e.commitPreedit(0)
-			if e.capSurrounding {
-				return false, nil
-			}
-			e.ForwardKeyEvent(keyVal, keyCode, state)
-			return true, nil
-		}
-	}
-
+	log.Printf("keyCode 0x%04x keyval 0x%04x", keyCode, keyVal)
 	if e.preediter.RawKeyLen() > 2*teni.MaxWordLength {
 		e.commitPreedit(keyVal)
 		return true, nil
@@ -212,7 +240,24 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 		e.updatePreedit()
 		return true, nil
 	} else {
-		if e.preediter.ResultLen() > 0 {
+		if e.preediter.ResultLen() > 0 || len(e.prevText) > 0 {
+			if e.config.EnableLongText == ibus.PROP_STATE_CHECKED && printableKeyCode[keyCode] {
+				if e.config.EnableForceSpell == ibus.PROP_STATE_CHECKED {
+					e.prevText = append(e.prevText, e.preediter.GetCommitResult()...)
+				} else {
+					e.prevText = append(e.prevText, e.preediter.GetResult()...)
+				}
+				cutLen := e.preediter.PushStateBack()
+				if cutLen > 0 {
+					e.CommitText(ibus.NewText(string(e.prevText[:cutLen])))
+					e.prevText = e.prevText[cutLen:]
+				}
+				e.prevText = append(e.prevText, rune(keyVal))
+				preeditText, preeditLen := string(e.prevText), uint32(len(e.prevText))
+				e.UpdatePreeditTextWithMode(ibus.NewText(preeditText), preeditLen, true, ibus.IBUS_ENGINE_PREEDIT_COMMIT)
+				return true, nil
+			}
+
 			if e.commitPreedit(keyVal) {
 				//lastKey already appended to commit string
 				return true, nil
@@ -224,6 +269,12 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 				e.ForwardKeyEvent(keyVal, keyCode, state)
 				return true, nil
 			}
+		} else if e.config.EnableLongText == ibus.PROP_STATE_CHECKED && printableKeyCode[keyCode] && e.preediter.LenStateBack() > 0 {
+			e.preediter.PushStateBack()
+			e.prevText = append(e.prevText, rune(keyVal))
+			preeditText, preeditLen := string(e.prevText), uint32(len(e.prevText))
+			e.UpdatePreeditTextWithMode(ibus.NewText(preeditText), preeditLen, true, ibus.IBUS_ENGINE_PREEDIT_COMMIT)
+			return true, nil
 		}
 		//pre-edit empty, just forward key
 		return false, nil
@@ -234,10 +285,10 @@ func (e *IBusTeniEngine) FocusIn() *dbus.Error {
 	e.Lock()
 	defer e.Unlock()
 
-	if e.display == nil {
-		e.display = x11OpenDisplay()
-	}
 	if e.config.EnableExcept == ibus.PROP_STATE_CHECKED {
+		if e.display == nil {
+			e.display = x11OpenDisplay()
+		}
 		e.excepted = e.exceptMap.Contains(x11GetFocusWindowClass(e.display))
 	}
 
@@ -251,6 +302,7 @@ func (e *IBusTeniEngine) FocusOut() *dbus.Error {
 	defer e.Unlock()
 
 	e.preediter.Reset()
+	e.prevText = e.prevText[:0]
 
 	return nil
 }
@@ -259,7 +311,11 @@ func (e *IBusTeniEngine) Reset() *dbus.Error {
 	e.Lock()
 	defer e.Unlock()
 
+	if e.preediter.RawKeyLen() > 0 {
+		e.HidePreeditText()
+	}
 	e.preediter.Reset()
+	e.prevText = e.prevText[:0]
 
 	return nil
 }
@@ -331,6 +387,7 @@ func (e *IBusTeniEngine) PropertyActivate(propName string, propState uint32) *db
 		}
 		SaveConfig(e.config, e.engineName)
 		e.propList = GetPropListByConfig(e.config)
+		e.RegisterProperties(e.propList)
 		if e.config.ToneType != oldToneType {
 			if e.config.ToneType == ConfigToneStd {
 				teni.InitWordTrie(DictStdList...)
@@ -345,6 +402,7 @@ func (e *IBusTeniEngine) PropertyActivate(propName string, propState uint32) *db
 		e.config.EnableExcept = propState
 		SaveConfig(e.config, e.engineName)
 		e.propList = GetPropListByConfig(e.config)
+		e.RegisterProperties(e.propList)
 		if propState == ibus.PROP_STATE_CHECKED {
 			e.exceptMap.Enable()
 			e.excepted = e.exceptMap.Contains(x11GetFocusWindowClass(e.display))
@@ -357,6 +415,23 @@ func (e *IBusTeniEngine) PropertyActivate(propName string, propState uint32) *db
 
 	if propName == PropKeyExceptList {
 		OpenExceptListFile(e.engineName)
+		return nil
+	}
+
+	if propName == PropKeyLongText {
+		e.config.EnableLongText = propState
+		SaveConfig(e.config, e.engineName)
+		e.propList = GetPropListByConfig(e.config)
+		e.RegisterProperties(e.propList)
+		return nil
+	}
+
+	if propName == PropKeyForceSpell {
+		e.config.EnableForceSpell = propState
+		SaveConfig(e.config, e.engineName)
+		e.propList = GetPropListByConfig(e.config)
+		e.RegisterProperties(e.propList)
+		e.preediter.ForceSpell = e.config.EnableForceSpell == ibus.PROP_STATE_CHECKED
 		return nil
 	}
 

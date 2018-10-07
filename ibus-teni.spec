@@ -22,7 +22,7 @@
 
 %define engine_name  teni
 %define package_name ibus-%{engine_name}
-%define version      1.3.3
+%define version      1.4.0
 
 
 #install directories ----------------------------------------------------------
@@ -81,6 +81,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Sun Oct 7 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.4.0
+- Thêm lựa chọn "Giữ nhiều chữ", cho phép sửa dấu những chữ đã gõ xong
+- Thêm lựa chọn "Đúng chính tả", cho phép bỏ qua kiểm tra chính tả
 * Sun Sep 23 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.3.3
 - Tối ưu chức năng "Loại trừ ứng dụng"
 - Sửa lỗi không gõ được sau khi click chuột đi chỗ khác

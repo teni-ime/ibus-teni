@@ -50,24 +50,31 @@ const (
 )
 
 type Config struct {
-	InputMethod  teni.InputMethod
-	ToneType     ToneType
-	EnableExcept uint32
+	InputMethod      teni.InputMethod
+	ToneType         ToneType
+	EnableExcept     uint32
+	EnableLongText   uint32
+	EnableForceSpell uint32
 }
 
 func LoadConfig(engineName string) *Config {
+	c := Config{
+		InputMethod:      teni.IMTeni,
+		ToneType:         ConfigToneStd,
+		EnableExcept:     0,
+		EnableLongText:   0,
+		EnableForceSpell: 1,
+	}
+
 	u, err := user.Current()
 	if err == nil {
 		data, err := ioutil.ReadFile(fmt.Sprintf(configFile, u.HomeDir, engineName))
 		if err == nil {
-			c := Config{}
-			err = json.Unmarshal(data, &c)
-			if err == nil {
-				return &c
-			}
+			json.Unmarshal(data, &c)
 		}
 	}
-	return &Config{InputMethod: teni.IMTeni}
+
+	return &c
 }
 
 func SaveConfig(c *Config, engineName string) {
