@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"github.com/godbus/dbus"
 	"github.com/sarim/goibus/ibus"
-	"log"
 	"os/exec"
 	"runtime/debug"
 	"sync"
@@ -222,7 +221,7 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 			return true, nil
 		}
 	}
-	log.Printf("keyCode 0x%04x keyval 0x%04x", keyCode, keyVal)
+
 	if e.preediter.RawKeyLen() > 2*teni.MaxWordLength {
 		e.commitPreedit(keyVal)
 		return true, nil
@@ -294,6 +293,9 @@ func (e *IBusTeniEngine) FocusIn() *dbus.Error {
 
 	e.RegisterProperties(e.propList)
 
+	e.preediter.Reset()
+	e.prevText = e.prevText[:0]
+
 	return nil
 }
 
@@ -308,27 +310,22 @@ func (e *IBusTeniEngine) FocusOut() *dbus.Error {
 }
 
 func (e *IBusTeniEngine) Reset() *dbus.Error {
-	e.Lock()
-	defer e.Unlock()
+	return nil
+}
 
-	log.Println("IBusTeniEngine() Reset() ")
-
-	if e.preediter.RawKeyLen() > 0 {
-		e.HidePreeditText()
-	}
+func (e *IBusTeniEngine) Enable() *dbus.Error {
 	e.preediter.Reset()
 	e.prevText = e.prevText[:0]
 
 	return nil
 }
 
-func (e *IBusTeniEngine) Enable() *dbus.Error {
-	return nil
-}
-
 func (e *IBusTeniEngine) Disable() *dbus.Error {
 	e.Lock()
 	defer e.Unlock()
+
+	e.preediter.Reset()
+	e.prevText = e.prevText[:0]
 
 	if e.display != nil {
 		x11CloseDisplay(e.display)
