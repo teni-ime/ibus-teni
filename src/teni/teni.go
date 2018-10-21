@@ -266,7 +266,7 @@ func (pc *Engine) AddKey(key rune) {
 		isCompleted = appendCase.findResult == FindResultMatchFull
 
 		if appendCase.findResult == FindResultNotMatch {
-			if pc.HasToneChar() {
+			if pc.HasToneChar() && pc.ForceSpell {
 				resultRunes = append(pc.rawKeys, key)
 			} else {
 				resultRunes = append(pc.getCopyResult(), key)
@@ -303,8 +303,7 @@ func (pc *Engine) AddKey(key rune) {
 		resultRunes = finalCase.value
 		isCompleted = finalCase.findResult == FindResultMatchFull
 
-		if !finalCase.revertMode &&
-			finalCase.findResult == FindResultNotMatch {
+		if !finalCase.revertMode && finalCase.findResult == FindResultNotMatch {
 			if pc.HasToneChar() && pc.ForceSpell {
 				resultRunes = append(pc.rawKeys, key)
 			} else {
