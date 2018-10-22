@@ -22,7 +22,7 @@
 
 %define engine_name  teni
 %define package_name ibus-%{engine_name}
-%define version      1.4.1
+%define version      1.4.2
 
 
 #install directories ----------------------------------------------------------
@@ -81,6 +81,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Oct 22 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.4.2
+- Sửa lỗi mất chữ khi đang gõ
+- Sửa lỗi con trỏ chuột nhảy về đầu dòng trên Facebook chat
 * Sun Oct 21 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.4.1
 - Cập nhật từ điển
 - Sửa lỗi mất chữ khi đang gõ
