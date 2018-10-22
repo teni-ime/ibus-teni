@@ -24,7 +24,7 @@ import (
 	"os"
 )
 
-//sudo chmod +r /dev/input/mice
+//sudo usermod -a -G input $USER
 const (
 	DevInputMice = "/dev/input/mice"
 )
@@ -40,11 +40,13 @@ func init() {
 			for {
 				n, err := miceDev.Read(data)
 				if err == nil && n == 3 && data[0]&0x7 != 0 {
-					if !down {
-						if onMouseClick != nil {
-							go onMouseClick()
+					if data[1] == 0 && data[2] == 0 {
+						if !down {
+							if onMouseClick != nil {
+								go onMouseClick()
+							}
+							down = true
 						}
-						down = true
 					}
 				} else if down {
 					down = false
