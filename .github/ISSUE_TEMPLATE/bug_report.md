@@ -25,7 +25,10 @@ Nếu cần thiết, hãy [đính kèm hình ảnh](https://help.github.com/arti
 **Môi trường**
  - OS và version: (ví dụ: Ubuntu 18.10)
  - Desktop: (Xfce, KDE, Gnome,... hoặc **mặc định**)
- - Phiên bản ibus-teni: (v1.4.0)
+ - Phiên bản ibus-teni: (click chuột trái vào icon VI tại góc màn hình để xem phiên bản ibus-teni, bản mới nhất là v1.4.2)
+ - Phiên bản IBus: (chạy command `ibus version` để xem phiên bản ibus)
+ - Ứng dụng có lỗi khi gõ: (ví dụ: Chrome, Firefox,...)
 
 **Thông tin thêm**
-Các nội dung khác có liên quan đến lỗi đang xảy ra.
+Các nội dung khác có liên quan đến lỗi đang xảy ra (nếu ứng dụng có lỗi trên kia không phổ biến thì hãy thêm hướng dẫn cài đặt)
+

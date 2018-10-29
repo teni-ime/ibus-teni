@@ -1,3 +1,19 @@
+ibus-teni (1.4.2-1) stable; urgency=low
+
+  * Release 1.4.2
+    - Sửa lỗi mất chữ khi đang gõ
+    - Sửa lỗi con trỏ chuột nhảy về đầu dòng trên Facebook chat
+
+ -- Nguyen Cong Hoang <hoangnc.jp@gmail.com>  Mon, 22 Oct 2018 00:00:00 +0900
+
+ibus-teni (1.4.1-1) stable; urgency=low
+
+  * Release 1.4.1
+    - Cập nhật từ điển
+    - Sửa lỗi mất chữ khi đang gõ
+
+ -- Nguyen Cong Hoang <hoangnc.jp@gmail.com>  Sun, 21 Oct 2018 00:00:00 +0900
+
 ibus-teni (1.4.0-1) stable; urgency=low
 
   * Release 1.4.0

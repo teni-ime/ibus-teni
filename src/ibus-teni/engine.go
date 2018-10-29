@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"github.com/godbus/dbus"
 	"github.com/sarim/goibus/ibus"
-	"log"
 	"os/exec"
 	"runtime/debug"
 	"sync"
@@ -49,6 +48,7 @@ type IBusTeniEngine struct {
 	exceptMap      *ExceptMap
 	display        CDisplay
 	prevText       []rune
+	ignoreNextUp   bool
 }
 
 var (
@@ -170,9 +170,18 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 	defer e.Unlock()
 
 	if e.zeroLocation || e.excepted ||
-		state&IBUS_RELEASE_MASK != 0 || //Ignore key-up event
 		(state&IBUS_SHIFT_MASK == 0 && (keyVal == IBUS_Shift_L || keyVal == IBUS_Shift_R)) { //Ignore 1 shift key
 		return false, nil
+	}
+
+	if state&IBUS_RELEASE_MASK != 0 {
+		//Ignore key-up event
+		if e.ignoreNextUp {
+			e.ignoreNextUp = false
+			return true, nil
+		} else {
+			return false, nil
+		}
 	}
 
 	if state&IBUS_CONTROL_MASK != 0 ||
@@ -186,6 +195,7 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 			return false, nil
 		} else {
 			//while typing, do not process control keys
+			e.ignoreNextUp = true
 			return true, nil
 		}
 	}
@@ -194,37 +204,40 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 		if e.preediter.RawKeyLen() > 0 {
 			e.preediter.Backspace()
 			e.updatePreedit()
+			e.ignoreNextUp = true
 			return true, nil
 		} else if lenLongText := len(e.prevText); lenLongText > 0 {
 			backLen := e.preediter.PopStateBack()
 			e.prevText = e.prevText[:lenLongText-1-backLen]
 			e.updatePreedit()
+			e.ignoreNextUp = true
 			return true, nil
 		}
 	}
 
 	if keyVal == IBUS_Return || keyVal == IBUS_KP_Enter {
 		if e.preediter.ResultLen() > 0 || len(e.prevText) > 0 {
-			e.commitPreedit(keyVal)
-			if e.capSurrounding {
-				return false, nil
+			e.commitPreedit(0)
+			//forward lastKey
+			if !e.capSurrounding {
+				e.ForwardKeyEvent(keyVal, keyCode, state)
+				return true, nil
 			}
-			e.ForwardKeyEvent(keyVal, keyCode, state)
-			return true, nil
-		} else {
-			return false, nil
 		}
+		return false, nil
 	}
 
 	if keyVal == IBUS_Escape {
 		if e.preediter.RawKeyLen() > 0 {
 			e.commitPreedit(keyVal)
+			e.ignoreNextUp = true
 			return true, nil
 		}
 	}
-	log.Printf("keyCode 0x%04x keyval 0x%04x", keyCode, keyVal)
+
 	if e.preediter.RawKeyLen() > 2*teni.MaxWordLength {
 		e.commitPreedit(keyVal)
+		e.ignoreNextUp = true
 		return true, nil
 	}
 
@@ -238,6 +251,7 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 		keyRune := rune(keyVal)
 		e.preediter.AddKey(keyRune)
 		e.updatePreedit()
+		e.ignoreNextUp = true
 		return true, nil
 	} else {
 		if e.preediter.ResultLen() > 0 || len(e.prevText) > 0 {
@@ -255,11 +269,13 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 				e.prevText = append(e.prevText, rune(keyVal))
 				preeditText, preeditLen := string(e.prevText), uint32(len(e.prevText))
 				e.UpdatePreeditTextWithMode(ibus.NewText(preeditText), preeditLen, true, ibus.IBUS_ENGINE_PREEDIT_COMMIT)
+				e.ignoreNextUp = true
 				return true, nil
 			}
 
 			if e.commitPreedit(keyVal) {
 				//lastKey already appended to commit string
+				e.ignoreNextUp = true
 				return true, nil
 			} else {
 				//forward lastKey
@@ -274,6 +290,7 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 			e.prevText = append(e.prevText, rune(keyVal))
 			preeditText, preeditLen := string(e.prevText), uint32(len(e.prevText))
 			e.UpdatePreeditTextWithMode(ibus.NewText(preeditText), preeditLen, true, ibus.IBUS_ENGINE_PREEDIT_COMMIT)
+			e.ignoreNextUp = true
 			return true, nil
 		}
 		//pre-edit empty, just forward key
@@ -294,6 +311,9 @@ func (e *IBusTeniEngine) FocusIn() *dbus.Error {
 
 	e.RegisterProperties(e.propList)
 
+	e.preediter.Reset()
+	e.prevText = e.prevText[:0]
+
 	return nil
 }
 
@@ -308,25 +328,22 @@ func (e *IBusTeniEngine) FocusOut() *dbus.Error {
 }
 
 func (e *IBusTeniEngine) Reset() *dbus.Error {
-	e.Lock()
-	defer e.Unlock()
+	return nil
+}
 
-	if e.preediter.RawKeyLen() > 0 {
-		e.HidePreeditText()
-	}
+func (e *IBusTeniEngine) Enable() *dbus.Error {
 	e.preediter.Reset()
 	e.prevText = e.prevText[:0]
 
 	return nil
 }
 
-func (e *IBusTeniEngine) Enable() *dbus.Error {
-	return nil
-}
-
 func (e *IBusTeniEngine) Disable() *dbus.Error {
 	e.Lock()
 	defer e.Unlock()
+
+	e.preediter.Reset()
+	e.prevText = e.prevText[:0]
 
 	if e.display != nil {
 		x11CloseDisplay(e.display)
