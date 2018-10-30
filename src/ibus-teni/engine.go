@@ -107,6 +107,14 @@ func IBusTeniEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
 		engine.exceptMap.Enable()
 	}
 	ibus.PublishEngine(conn, objectPath, engine)
+	go engine.startAutoCommit()
+	onMouseMove = func() {
+		engine.Lock()
+		defer engine.Unlock()
+		if engine.preediter.RawKeyLen() > 0 {
+			engine.commitPreedit(0)
+		}
+	}
 
 	onMouseClick = func() {
 		engine.Lock()
@@ -119,6 +127,21 @@ func IBusTeniEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
 	}
 
 	return objectPath
+}
+
+var keyPressChan = make(chan uint32)
+
+func (e *IBusTeniEngine) startAutoCommit() {
+	for {
+		select {
+		case <-keyPressChan:
+			break
+		case <-time.After(3 * time.Second):
+			if e.preediter.RawKeyLen() > 0 {
+				e.commitPreedit(0)
+			}
+		}
+	}
 }
 
 func (e *IBusTeniEngine) updatePreedit() {
@@ -173,6 +196,8 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 		(state&IBUS_SHIFT_MASK == 0 && (keyVal == IBUS_Shift_L || keyVal == IBUS_Shift_R)) { //Ignore 1 shift key
 		return false, nil
 	}
+
+	keyPressChan <- keyVal
 
 	if state&IBUS_RELEASE_MASK != 0 {
 		//Ignore key-up event
@@ -321,8 +346,8 @@ func (e *IBusTeniEngine) FocusOut() *dbus.Error {
 	e.Lock()
 	defer e.Unlock()
 
-	e.preediter.Reset()
-	e.prevText = e.prevText[:0]
+	//e.preediter.Reset()
+	//e.prevText = e.prevText[:0]
 
 	return nil
 }

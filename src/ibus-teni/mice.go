@@ -30,6 +30,7 @@ const (
 )
 
 var onMouseClick func()
+var onMouseMove func()
 
 func init() {
 	go func() {
@@ -39,6 +40,9 @@ func init() {
 			data := make([]byte, 3)
 			for {
 				n, err := miceDev.Read(data)
+				if err == nil && n == 3 {
+					go onMouseMove()
+				}
 				if err == nil && n == 3 && data[0]&0x7 != 0 {
 					if data[1] == 0 && data[2] == 0 {
 						if !down {
