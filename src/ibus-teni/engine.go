@@ -31,10 +31,6 @@ import (
 	"time"
 )
 
-const (
-	DiffNumpadKeypad = IBUS_KP_0 - IBUS_0
-)
-
 type IBusTeniEngine struct {
 	sync.Mutex
 	ibus.Engine
