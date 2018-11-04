@@ -126,10 +126,10 @@ func (e *IBusTeniEngine) updatePreedit() {
 	preeditLen := uint32(len(e.prevText))
 	preeditText += e.preediter.GetResultStr()
 	preeditLen += e.preediter.ResultLen()
-	if preeditLen > 0 {
-		e.UpdatePreeditTextWithMode(ibus.NewText(preeditText), preeditLen, true, ibus.IBUS_ENGINE_PREEDIT_COMMIT)
-	} else {
-		e.HidePreeditText()
+
+	e.UpdatePreeditTextWithMode(ibus.NewText(preeditText), preeditLen, true, ibus.IBUS_ENGINE_PREEDIT_COMMIT)
+
+	if preeditLen == 0 {
 		e.preediter.Reset()
 	}
 }
