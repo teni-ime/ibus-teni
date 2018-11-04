@@ -27,16 +27,17 @@ import (
 )
 
 const (
-	PropKeyAbout       = "about"
-	PropKeyMethodTeni  = "method_teni"
-	PropKeyMethodVni   = "method_vni"
-	PropKeyMethodTelex = "method_telex"
-	PropKeyToneStd     = "tone_std"
-	PropKeyToneNew     = "tone_new"
-	PropKeyExcept      = "except"
-	PropKeyExceptList  = "except_list"
-	PropKeyLongText    = "long_text"
-	PropKeyForceSpell  = "force_spell"
+	PropKeyAbout         = "about"
+	PropKeyMethodTeni    = "method_teni"
+	PropKeyMethodVni     = "method_vni"
+	PropKeyMethodTelex   = "method_telex"
+	PropKeyMethodTelexEx = "method_telex_ex"
+	PropKeyToneStd       = "tone_std"
+	PropKeyToneNew       = "tone_new"
+	PropKeyExcept        = "except"
+	PropKeyExceptList    = "except_list"
+	PropKeyLongText      = "long_text"
+	PropKeyForceSpell    = "force_spell"
 )
 
 var runMode = ""
@@ -45,6 +46,7 @@ func GetPropListByConfig(c *Config) *ibus.PropList {
 	teniChecked := ibus.PROP_STATE_UNCHECKED
 	vniChecked := ibus.PROP_STATE_UNCHECKED
 	telexChecked := ibus.PROP_STATE_UNCHECKED
+	telexExChecked := ibus.PROP_STATE_UNCHECKED
 	toneStdChecked := ibus.PROP_STATE_UNCHECKED
 	toneNewChecked := ibus.PROP_STATE_UNCHECKED
 
@@ -55,6 +57,8 @@ func GetPropListByConfig(c *Config) *ibus.PropList {
 		vniChecked = ibus.PROP_STATE_CHECKED
 	case teni.IMTelex:
 		telexChecked = ibus.PROP_STATE_CHECKED
+	case teni.IMTelexEx:
+		telexExChecked = ibus.PROP_STATE_CHECKED
 	}
 	switch c.ToneType {
 	case ConfigToneStd:
@@ -116,11 +120,23 @@ func GetPropListByConfig(c *Config) *ibus.PropList {
 			Key:       PropKeyMethodTelex,
 			Type:      ibus.PROP_TYPE_RADIO,
 			Label:     dbus.MakeVariant(ibus.NewText("Kiểu gõ Telex")),
-			Tooltip:   dbus.MakeVariant(ibus.NewText("Chỉ kiểu gõ Telex")),
+			Tooltip:   dbus.MakeVariant(ibus.NewText("Kiểu gõ Telex không dùng []")),
 			Sensitive: true,
 			Visible:   true,
 			State:     telexChecked,
 			Symbol:    dbus.MakeVariant(ibus.NewText("X")),
+			SubProps:  dbus.MakeVariant(*ibus.NewPropList()),
+		},
+		&ibus.Property{
+			Name:      "IBusProperty",
+			Key:       PropKeyMethodTelexEx,
+			Type:      ibus.PROP_TYPE_RADIO,
+			Label:     dbus.MakeVariant(ibus.NewText("Kiểu gõ [Telex]")),
+			Tooltip:   dbus.MakeVariant(ibus.NewText("Kiểu gõ Telex có dùng []")),
+			Sensitive: true,
+			Visible:   true,
+			State:     telexExChecked,
+			Symbol:    dbus.MakeVariant(ibus.NewText("[")),
 			SubProps:  dbus.MakeVariant(*ibus.NewPropList()),
 		},
 		&ibus.Property{

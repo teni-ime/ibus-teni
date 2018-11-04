@@ -31,10 +31,6 @@ import (
 	"time"
 )
 
-const (
-	DiffNumpadKeypad = IBUS_KP_0 - IBUS_0
-)
-
 type IBusTeniEngine struct {
 	sync.Mutex
 	ibus.Engine
@@ -126,16 +122,15 @@ func (e *IBusTeniEngine) updatePreedit() {
 	preeditLen := uint32(len(e.prevText))
 	preeditText += e.preediter.GetResultStr()
 	preeditLen += e.preediter.ResultLen()
-	if preeditLen > 0 {
-		e.UpdatePreeditTextWithMode(ibus.NewText(preeditText), preeditLen, true, ibus.IBUS_ENGINE_PREEDIT_COMMIT)
-	} else {
-		e.HidePreeditText()
+
+	e.UpdatePreeditTextWithMode(ibus.NewText(preeditText), preeditLen, true, ibus.IBUS_ENGINE_PREEDIT_COMMIT)
+
+	if preeditLen == 0 {
 		e.preediter.Reset()
 	}
 }
 
-func (e *IBusTeniEngine) commitPreedit(lastKey uint32) bool {
-	var keyAppended = false
+func (e *IBusTeniEngine) commitPreedit(lastKey uint32) {
 	var commitStr = string(e.prevText)
 	if lastKey == IBUS_Escape {
 		commitStr += e.preediter.GetRawStr()
@@ -147,22 +142,8 @@ func (e *IBusTeniEngine) commitPreedit(lastKey uint32) bool {
 	e.preediter.Reset()
 	e.prevText = e.prevText[:0]
 
-	//Convert num-pad key to normal number
-	if (lastKey >= IBUS_KP_0 && lastKey <= IBUS_KP_9) ||
-		(lastKey >= IBUS_KP_Multiply && lastKey <= IBUS_KP_Divide) {
-		lastKey = lastKey - DiffNumpadKeypad
-	}
-
-	if lastKey >= 0x20 && lastKey <= 0xFF {
-		//append printable keys
-		commitStr += string(lastKey)
-		keyAppended = true
-	}
-
 	e.HidePreeditText()
 	e.CommitText(ibus.NewText(commitStr))
-
-	return keyAppended
 }
 
 func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state uint32) (bool, *dbus.Error) {
@@ -177,11 +158,12 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 	if state&IBUS_RELEASE_MASK != 0 {
 		//Ignore key-up event
 		if e.ignoreNextUp {
-			e.ignoreNextUp = false
 			return true, nil
 		} else {
 			return false, nil
 		}
+	} else {
+		e.ignoreNextUp = false
 	}
 
 	if state&IBUS_CONTROL_MASK != 0 ||
@@ -244,7 +226,8 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 	if (keyVal >= 'a' && keyVal <= 'z') ||
 		(keyVal >= 'A' && keyVal <= 'Z') ||
 		(keyVal >= '0' && keyVal <= '9' && e.preediter.ResultLen() > 0) ||
-		(e.preediter.InputMethod == teni.IMTelex && teni.InChangeCharMap(rune(keyVal))) {
+		(e.preediter.InputMethod == teni.IMTelex && teni.InChangeCharMap(rune(keyVal))) ||
+		(e.preediter.InputMethod == teni.IMTelexEx && teni.InChangeCharMapEx(rune(keyVal))) {
 		if e.preediter.InputMethod == teni.IMTelex && state&IBUS_LOCK_MASK != 0 {
 			keyVal = teni.SwitchCaplock(keyVal)
 		}
@@ -273,18 +256,14 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 				return true, nil
 			}
 
-			if e.commitPreedit(keyVal) {
-				//lastKey already appended to commit string
-				e.ignoreNextUp = true
-				return true, nil
-			} else {
-				//forward lastKey
-				if e.capSurrounding {
-					return false, nil
-				}
-				e.ForwardKeyEvent(keyVal, keyCode, state)
-				return true, nil
+			e.commitPreedit(keyVal)
+
+			//forward lastKey
+			if e.capSurrounding {
+				return false, nil
 			}
+			e.ForwardKeyEvent(keyVal, keyCode, state)
+			return true, nil
 		} else if e.config.EnableLongText == ibus.PROP_STATE_CHECKED && printableKeyCode[keyCode] && e.preediter.LenStateBack() > 0 {
 			e.preediter.PushStateBack()
 			e.prevText = append(e.prevText, rune(keyVal))
@@ -385,6 +364,7 @@ func (e *IBusTeniEngine) PropertyActivate(propName string, propState uint32) *db
 		(propName == PropKeyMethodTeni ||
 			propName == PropKeyMethodVni ||
 			propName == PropKeyMethodTelex ||
+			propName == PropKeyMethodTelexEx ||
 			propName == PropKeyToneStd ||
 			propName == PropKeyToneNew) {
 		switch propName {
@@ -397,6 +377,9 @@ func (e *IBusTeniEngine) PropertyActivate(propName string, propState uint32) *db
 		case PropKeyMethodTelex:
 			e.config.InputMethod = teni.IMTelex
 			e.preediter.InputMethod = teni.IMTelex
+		case PropKeyMethodTelexEx:
+			e.config.InputMethod = teni.IMTelexEx
+			e.preediter.InputMethod = teni.IMTelexEx
 		case PropKeyToneStd:
 			e.config.ToneType = ConfigToneStd
 		case PropKeyToneNew:

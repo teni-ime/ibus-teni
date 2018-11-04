@@ -33,9 +33,10 @@ const (
 type InputMethod int
 
 const (
-	IMTeni  InputMethod = iota << 0
-	IMVni   InputMethod = iota
-	IMTelex InputMethod = iota
+	IMTeni    InputMethod = iota << 0
+	IMVni     InputMethod = iota
+	IMTelex   InputMethod = iota
+	IMTelexEx InputMethod = iota
 )
 
 type EngineState struct {
@@ -259,8 +260,8 @@ func (pc *Engine) AddKey(key rune) {
 	if len(pc.rawKeys) > MaxWordLength ||
 		(pc.InputMethod == IMVni && (key < '0' || key > '9')) ||
 		(pc.InputMethod == IMTelex && (key >= '0' && key <= '9')) ||
-		(len(resultRunes) == 0 && (pc.InputMethod != IMTelex || !InChangeCharMap(key))) ||
-		(replaceCharMap[key] == nil && replaceStrMap[key] == nil && (pc.InputMethod == IMTelex && !InChangeCharMap(key))) {
+		(len(resultRunes) == 0 && (pc.InputMethod != IMTelex || !InChangeCharMap(key)) && (pc.InputMethod != IMTelexEx || !InChangeCharMapEx(key))) ||
+		(replaceCharMap[key] == nil && replaceStrMap[key] == nil && (pc.InputMethod == IMTelex && !InChangeCharMap(key)) && (pc.InputMethod != IMTelexEx || !InChangeCharMapEx(key))) {
 		appendCase := pc.appendChar(key, resultRunes)
 		resultRunes = appendCase.value
 		isCompleted = appendCase.findResult == FindResultMatchFull
@@ -397,7 +398,7 @@ func (pc *Engine) replaceChar(key rune, originalRunes []rune) *resultCase {
 }
 
 func (pc *Engine) changeChar(key rune, originalRunes []rune) *resultCase {
-	if changeTo, exist := changeCharMap[key]; exist {
+	if changeTo, exist := changeCharMapEx[key]; exist {
 		lr := len(originalRunes)
 		lrk := len(pc.rawKeys)
 		//revert mode
