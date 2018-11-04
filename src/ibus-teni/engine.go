@@ -230,7 +230,8 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 	if (keyVal >= 'a' && keyVal <= 'z') ||
 		(keyVal >= 'A' && keyVal <= 'Z') ||
 		(keyVal >= '0' && keyVal <= '9' && e.preediter.ResultLen() > 0) ||
-		(e.preediter.InputMethod == teni.IMTelex && teni.InChangeCharMap(rune(keyVal))) {
+		(e.preediter.InputMethod == teni.IMTelex && teni.InChangeCharMap(rune(keyVal))) ||
+		(e.preediter.InputMethod == teni.IMTelexEx && teni.InChangeCharMapEx(rune(keyVal))) {
 		if e.preediter.InputMethod == teni.IMTelex && state&IBUS_LOCK_MASK != 0 {
 			keyVal = teni.SwitchCaplock(keyVal)
 		}
@@ -367,6 +368,7 @@ func (e *IBusTeniEngine) PropertyActivate(propName string, propState uint32) *db
 		(propName == PropKeyMethodTeni ||
 			propName == PropKeyMethodVni ||
 			propName == PropKeyMethodTelex ||
+			propName == PropKeyMethodTelexEx ||
 			propName == PropKeyToneStd ||
 			propName == PropKeyToneNew) {
 		switch propName {
@@ -379,6 +381,9 @@ func (e *IBusTeniEngine) PropertyActivate(propName string, propState uint32) *db
 		case PropKeyMethodTelex:
 			e.config.InputMethod = teni.IMTelex
 			e.preediter.InputMethod = teni.IMTelex
+		case PropKeyMethodTelexEx:
+			e.config.InputMethod = teni.IMTelexEx
+			e.preediter.InputMethod = teni.IMTelexEx
 		case PropKeyToneStd:
 			e.config.ToneType = ConfigToneStd
 		case PropKeyToneNew:

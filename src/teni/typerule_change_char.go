@@ -21,6 +21,11 @@
 package teni
 
 var changeCharMap = map[rune]rune{
+	'w': 'ư',
+	'W': 'Ư',
+}
+
+var changeCharMapEx = map[rune]rune{
 	'[': 'ơ',
 	'{': 'Ơ',
 	']': 'ư',
@@ -31,6 +36,11 @@ var changeCharMap = map[rune]rune{
 
 func InChangeCharMap(c rune) bool {
 	_, exist := changeCharMap[c]
+	return exist
+}
+
+func InChangeCharMapEx(c rune) bool {
+	_, exist := changeCharMapEx[c]
 	return exist
 }
 

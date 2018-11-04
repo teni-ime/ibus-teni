@@ -105,7 +105,7 @@ func TestTeniTypeRule(t *testing.T) {
 		if strings.Contains(fo.Name(), vniTestDataFileSign) {
 			pc.InputMethod = IMVni
 		} else if strings.Contains(fo.Name(), telexTestDataFileSign) {
-			pc.InputMethod = IMTelex
+			pc.InputMethod = IMTelexEx
 		} else {
 			pc.InputMethod = IMTeni
 		}
