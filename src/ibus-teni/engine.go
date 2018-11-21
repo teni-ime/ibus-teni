@@ -157,7 +157,7 @@ func (e *IBusTeniEngine) ProcessKeyEvent(keyVal uint32, keyCode uint32, state ui
 
 	if state&IBUS_RELEASE_MASK != 0 {
 		//Ignore key-up event
-		if e.ignoreNextUp {
+		if e.ignoreNextUp || e.preediter.RawKeyLen() > 0 {
 			return true, nil
 		} else {
 			return false, nil
