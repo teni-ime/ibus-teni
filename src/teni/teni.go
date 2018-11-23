@@ -56,12 +56,11 @@ type Engine struct {
 type resultCase struct {
 	value      []rune
 	findResult uint8
-	revertMode bool
 }
 
 func (pc *resultCase) better(pc2 *resultCase) bool {
 	return pc.findResult > pc2.findResult ||
-		(pc.findResult == pc2.findResult && pc.revertMode && !pc2.revertMode)
+		(pc.findResult == pc2.findResult && len(pc.value) < len(pc2.value))
 }
 
 type resultCases []*resultCase
@@ -227,12 +226,23 @@ func copyRunes(r []rune) []rune {
 	return t
 }
 
-func (pc *Engine) getCopyResult() []rune {
-	if l := len(pc.resultStack); l > 0 {
-		return copyRunes(pc.resultStack[l-1])
+func (pc *Engine) getCopyResult() ([]rune, []rune) {
+	return pc.getCopyResultN(0)
+}
+
+func (pc *Engine) getCopyResultN(n int) ([]rune, []rune) {
+	if l := len(pc.resultStack); l > n {
+		rs := copyRunes(pc.resultStack[l-1-n])
+		if pc.ForceSpell {
+			return nil, rs
+		} else {
+			//a,b:=SplitConsonantVowel(rs)
+			//log.Printf("SplitConsonantVowel [%s], [%s], [%s]", string(rs), string(a), string(b))
+			return SplitConsonantVowel(rs)
+		}
 	}
 
-	return nil
+	return nil, nil
 }
 
 func (pc *Engine) Backspace() {
@@ -254,7 +264,7 @@ func (pc *Engine) AddStr(s string) {
 }
 
 func (pc *Engine) AddKey(key rune) {
-	resultRunes := pc.getCopyResult()
+	consonant, resultRunes := pc.getCopyResult()
 	var isCompleted bool
 
 	if len(pc.rawKeys) > MaxWordLength ||
@@ -270,46 +280,61 @@ func (pc *Engine) AddKey(key rune) {
 			if pc.HasToneChar() && pc.ForceSpell {
 				resultRunes = append(pc.rawKeys, key)
 			} else {
-				resultRunes = append(pc.getCopyResult(), key)
+				cs, rs := pc.getCopyResult()
+				resultRunes = append(cs, rs...)
+				resultRunes = append(resultRunes, key)
 			}
+		} else {
+			resultRunes = append(consonant, resultRunes...)
 		}
 	} else {
+
 		finalCase := pc.changeChar(key, resultRunes)
 
-		if finalCase == nil || finalCase.findResult != FindResultMatchFull {
+		if finalCase == nil || (finalCase.findResult != FindResultMatchFull && finalCase.findResult != FindResultRevert) {
 			replaceStrCase := pc.replaceStr(key, resultRunes)
 			if replaceStrCase != nil &&
-				(replaceStrCase.findResult != FindResultNotMatch || replaceStrCase.revertMode) &&
+				(replaceStrCase.findResult != FindResultNotMatch) &&
 				(finalCase == nil || replaceStrCase.better(finalCase)) {
 				finalCase = replaceStrCase
 			}
 		}
 
-		if finalCase == nil || finalCase.findResult != FindResultMatchFull {
+		if finalCase == nil || (finalCase.findResult != FindResultMatchFull && finalCase.findResult != FindResultRevert) {
 			replaceCharCase := pc.replaceChar(key, resultRunes)
 			if replaceCharCase != nil &&
-				(replaceCharCase.findResult != FindResultNotMatch || replaceCharCase.revertMode) &&
+				(replaceCharCase.findResult != FindResultNotMatch) &&
 				(finalCase == nil || replaceCharCase.better(finalCase)) {
 				finalCase = replaceCharCase
 			}
 		}
 
-		if finalCase == nil || finalCase.findResult != FindResultMatchFull {
+		if finalCase == nil || (finalCase.findResult != FindResultMatchFull && finalCase.findResult != FindResultRevert) {
 			appendCase := pc.appendChar(key, resultRunes)
 			if finalCase == nil || appendCase.better(finalCase) {
 				finalCase = appendCase
 			}
 		}
 
+		if finalCase == nil || (finalCase.findResult != FindResultMatchFull && finalCase.findResult != FindResultRevert) {
+			revertCase := pc.revertChar(key, resultRunes)
+			if revertCase != nil && (finalCase == nil || revertCase.better(finalCase)) {
+				finalCase = revertCase
+			}
+		}
 		resultRunes = finalCase.value
 		isCompleted = finalCase.findResult == FindResultMatchFull
 
-		if !finalCase.revertMode && finalCase.findResult == FindResultNotMatch {
+		if finalCase.findResult == FindResultNotMatch {
 			if pc.HasToneChar() && pc.ForceSpell {
 				resultRunes = append(pc.rawKeys, key)
 			} else {
-				resultRunes = append(pc.getCopyResult(), key)
+				cs, rs := pc.getCopyResult()
+				resultRunes = append(cs, rs...)
+				resultRunes = append(resultRunes, key)
 			}
+		} else {
+			resultRunes = append(consonant, resultRunes...)
 		}
 	}
 
@@ -346,16 +371,12 @@ func (pc *Engine) replaceStr(key rune, originalRunes []rune) *resultCase {
 			replacedText := strings.Replace(resultText, findText, replaceSR.S, 1)
 
 			resultRunes := []rune(replacedText)
-			if replaceSR.R {
-				originalRunes = append(originalRunes, key)
-			}
 
 			result := findRootWord(resultRunes)
 
 			return &resultCase{
 				value:      resultRunes,
 				findResult: result,
-				revertMode: replaceSR.R,
 			}
 		}
 	}
@@ -371,15 +392,12 @@ func (pc *Engine) replaceChar(key rune, originalRunes []rune) *resultCase {
 			if cReplace, found := rcm[c]; found {
 				resultRunes := copyRunes(originalRunes)
 				resultRunes[i] = cReplace.C
-				if cReplace.R {
-					resultRunes = append(resultRunes, key)
-				}
+
 				result := findRootWord(resultRunes)
 
 				resultCases = append(resultCases, &resultCase{
 					value:      resultRunes,
 					findResult: result,
-					revertMode: cReplace.R,
 				})
 
 				if result == FindResultMatchFull {
@@ -405,13 +423,12 @@ func (pc *Engine) changeChar(key rune, originalRunes []rune) *resultCase {
 		if lr > 0 && lrk > 0 && key != originalRunes[lr-1] && pc.rawKeys[lrk-1] == key {
 			var resultRunes []rune
 			if lrs := len(pc.resultStack); lrs > 1 {
-				resultRunes = copyRunes(pc.resultStack[lrs-2])
+				_, resultRunes = pc.getCopyResultN(1)
 			}
 			resultRunes = append(resultRunes, key)
 			return &resultCase{
 				value:      resultRunes,
-				findResult: FindResultNotMatch,
-				revertMode: true,
+				findResult: FindResultRevert,
 			}
 		}
 
@@ -423,7 +440,27 @@ func (pc *Engine) changeChar(key rune, originalRunes []rune) *resultCase {
 		return &resultCase{
 			value:      resultRunes,
 			findResult: result,
-			revertMode: false,
+		}
+	}
+
+	return nil
+}
+
+func (pc *Engine) revertChar(key rune, originalRunes []rune) *resultCase {
+	if replaceCharMap[key] != nil || replaceStrMap[key] != nil {
+		lr := len(originalRunes)
+		lrk := len(pc.rawKeys)
+		//revert mode
+		if lr > 0 && lrk > 0 && key != originalRunes[lr-1] && pc.rawKeys[lrk-1] == key {
+			var resultRunes []rune
+			if lrs := len(pc.resultStack); lrs > 1 {
+				_, resultRunes = pc.getCopyResultN(1)
+			}
+			resultRunes = append(resultRunes, key)
+			return &resultCase{
+				value:      resultRunes,
+				findResult: FindResultRevert,
+			}
 		}
 	}
 

@@ -27,12 +27,12 @@ import (
 func TestTeniCoverage(t *testing.T) {
 	cdDictDir()
 
-	e := InitWordTrie("you can't find me")
+	e := InitWordTrie(true, "you can't find me")
 	if e == nil {
 		t.Errorf("e must be not nil here!")
 	}
 
-	e = InitWordTrie(DictStdList...)
+	e = InitWordTrie(true, DictStdList...)
 	fe(e)
 	pc := NewEngine()
 	initResultLen := pc.ResultLen()
@@ -43,7 +43,7 @@ func TestTeniCoverage(t *testing.T) {
 	if initResult != nil {
 		t.Errorf("initResult %+v", initResult)
 	}
-	initCommitResult := pc.GetCommitResultStr()
+	initCommitResult := pc.GetResultStr()
 	if initCommitResult != "" {
 		t.Errorf("initResult %+v", initResult)
 	}
@@ -66,14 +66,14 @@ func TestTeniCoverage(t *testing.T) {
 	}
 
 	pc.AddKey('a')
-	commitStr := pc.GetCommitResultStr()
+	commitStr := pc.GetResultStr()
 	expectedCommitStr := "tieesnga"
 	if commitStr != expectedCommitStr {
 		t.Errorf("commitStr [%s], expectedCommitStr [%s]", commitStr, expectedCommitStr)
 	}
 
 	pc.Backspace()
-	commitStr = pc.GetCommitResultStr()
+	commitStr = pc.GetResultStr()
 	expectedCommitStr = "tiếng"
 	if commitStr != expectedCommitStr {
 		t.Errorf("commitStr [%s], expectedCommitStr [%s]", commitStr, expectedCommitStr)
@@ -86,7 +86,7 @@ func TestTeniCoverage(t *testing.T) {
 	}
 
 	pc.AddStr("aaaaaaaaaaaaaaaaaa")
-	commitStr = pc.GetCommitResultStr()
+	commitStr = pc.GetResultStr()
 	expectedCommitStr = "tieesngaaaaaaaaaaaaaaaaaa"
 	if commitStr != expectedCommitStr {
 		t.Errorf("commitStr [%s], expectedCommitStr [%s]", commitStr, expectedCommitStr)

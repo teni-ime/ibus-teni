@@ -84,9 +84,9 @@ func IBusTeniEngineCreator(conn *dbus.Conn, engineName string) dbus.ObjectPath {
 
 	var config = LoadConfig(engineName)
 	if config.ToneType == ConfigToneStd {
-		teni.InitWordTrie(DictStdList...)
+		teni.InitWordTrie(config.EnableForceSpell == ibus.PROP_STATE_CHECKED, DictStdList...)
 	} else {
-		teni.InitWordTrie(DictNewList...)
+		teni.InitWordTrie(config.EnableForceSpell == ibus.PROP_STATE_CHECKED, DictNewList...)
 	}
 
 	engine := &IBusTeniEngine{
@@ -390,9 +390,9 @@ func (e *IBusTeniEngine) PropertyActivate(propName string, propState uint32) *db
 		e.RegisterProperties(e.propList)
 		if e.config.ToneType != oldToneType {
 			if e.config.ToneType == ConfigToneStd {
-				teni.InitWordTrie(DictStdList...)
+				teni.InitWordTrie(e.preediter.ForceSpell, DictStdList...)
 			} else {
-				teni.InitWordTrie(DictNewList...)
+				teni.InitWordTrie(e.preediter.ForceSpell, DictNewList...)
 			}
 		}
 		return nil
@@ -432,6 +432,13 @@ func (e *IBusTeniEngine) PropertyActivate(propName string, propState uint32) *db
 		e.propList = GetPropListByConfig(e.config)
 		e.RegisterProperties(e.propList)
 		e.preediter.ForceSpell = e.config.EnableForceSpell == ibus.PROP_STATE_CHECKED
+
+		if e.config.ToneType == ConfigToneStd {
+			teni.InitWordTrie(e.preediter.ForceSpell, DictStdList...)
+		} else {
+			teni.InitWordTrie(e.preediter.ForceSpell, DictNewList...)
+		}
+
 		return nil
 	}
 

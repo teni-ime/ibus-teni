@@ -94,10 +94,10 @@ func TestTeniTypeRule(t *testing.T) {
 			continue
 		}
 		if strings.Contains(fo.Name(), newTestDataFileSign) {
-			e := InitWordTrie(DictNewList...)
+			e := InitWordTrie(true, DictNewList...)
 			fe(e)
 		} else {
-			e := InitWordTrie(DictStdList...)
+			e := InitWordTrie(true, DictStdList...)
 			fe(e)
 		}
 
@@ -121,7 +121,7 @@ func TestTeniTypeRule(t *testing.T) {
 			testCaseCount++
 			pc.Reset()
 			pc.AddStr(in)
-			result := pc.GetCommitResultStr()
+			result := pc.GetResultStr()
 			if result != out {
 				t.Errorf("\tLine #%d for [%s], expected [%s], got [%s]", iLine, in, out, result)
 				failedCount++

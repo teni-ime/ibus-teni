@@ -57,7 +57,6 @@ func init() {
 		for _, k := range keys {
 			m[unicode.ToUpper(k)] = &CR{
 				C: unicode.ToUpper(m[k].C),
-				R: m[k].R,
 			}
 		}
 	}
@@ -81,11 +80,9 @@ func init() {
 		for _, s := range keys {
 			m[strings.ToUpper(s)] = &SR{
 				S: strings.ToUpper(m[s].S),
-				R: m[s].R,
 			}
 			m[upFirstChar(s)] = &SR{
 				S: upFirstChar(m[s].S),
-				R: m[s].R,
 			}
 		}
 	}
