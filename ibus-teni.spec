@@ -22,7 +22,7 @@
 
 %define engine_name  teni
 %define package_name ibus-%{engine_name}
-%define version      1.5.1
+%define version      1.5.2
 
 
 #install directories ----------------------------------------------------------
@@ -81,6 +81,8 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Sat Nov 24 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.5.2
+- Sửa kiểu gõ tự do không kiểm tra chính tả
 * Fri Nov 23 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.5.1
 - Sửa kiểu gõ tự do không kiểm tra chính tả
 * Sun Nov 4 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.5.0
