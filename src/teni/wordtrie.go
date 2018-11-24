@@ -36,7 +36,7 @@ const (
 	FindResultRevert
 	FindResultMatchFull
 
-	Consonant = "qwrtpsdfghjklzxcvbnmđ"
+	Consonant = "qwrtpsdfghjklzxcvbnmđQWRTPSDFGHJKLZXCVBNMĐ"
 )
 
 var consonantKeys = map[rune]bool{
@@ -61,11 +61,32 @@ var consonantKeys = map[rune]bool{
 	'b': true,
 	'n': true,
 	'm': true,
+	'Đ': true,
+	'Q': true,
+	'W': true,
+	'R': true,
+	'T': true,
+	'P': true,
+	'S': true,
+	'D': true,
+	'F': true,
+	'G': true,
+	'H': true,
+	'J': true,
+	'K': true,
+	'L': true,
+	'Z': true,
+	'X': true,
+	'C': true,
+	'V': true,
+	'B': true,
+	'N': true,
+	'M': true,
 }
 
-var changeableConsonant = []string{"d"}
+var changeableConsonant = []string{"d", "D"}
 
-var connectConsonant = []string{"qu", "gi"}
+var connectConsonant = []string{"qu", "QU", "Qu", "qU", "gi", "GI", "Gi", "gI"}
 
 func RemoveConsonant(s string) string {
 	if len([]rune(s)) <= 1 {
