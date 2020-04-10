@@ -1,3 +1,10 @@
+ibus-teni (1.5.3-1) stable; urgency=low
+
+  * Release 1.5.3
+    - Build cho Ubuntu 20.04
+
+ -- Nguyen Cong Hoang <hoangnc.jp@gmail.com>  Sat, 10 Apr 2020 00:00:00 +0900
+
 ibus-teni (1.5.2-1) stable; urgency=low
 
   * Release 1.5.2

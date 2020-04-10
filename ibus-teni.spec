@@ -22,7 +22,7 @@
 
 %define engine_name  teni
 %define package_name ibus-%{engine_name}
-%define version      1.5.2
+%define version      1.5.3
 
 
 #install directories ----------------------------------------------------------
@@ -81,6 +81,8 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Sat Nov 24 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.5.3
+- Build cho Ubuntu 20.04
 * Sat Nov 24 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.5.2
 - Sửa kiểu gõ tự do không kiểm tra chính tả
 * Fri Nov 23 2018 Nguyen Cong Hoang <hoangnc.jp@gmail.com> - 1.5.1
